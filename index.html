@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101722">
+<meta name="description" content="Panel nutricional personal: descanso, boxeo y sesión doble.">
+<title>Panel nutricional · Píter</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1019;--surface:#151e2b;--surface2:#1b2837;--border:#304052;--ink:#f4f7f9;--muted:#afbdca;--accent:#f6c46d;--cyan:#80d4d0;--green:#9bd8b2}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top left,#20354a 0%,#0b1019 46%);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+.shell{max-width:1020px;margin:auto;padding:22px 16px 85px}.eyebrow{letter-spacing:.15em;text-transform:uppercase;font-size:.72rem;font-weight:800;color:var(--cyan)}h1{font-size:clamp(1.7rem,5vw,2.7rem);line-height:1.1;margin:7px 0 8px}.lead{color:var(--muted);margin:0 0 20px}
+.modebar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.mode{min-height:94px;text-align:left;border:1px solid var(--border);border-radius:17px;background:var(--surface);color:var(--ink);padding:13px;transition:.2s}.mode[aria-pressed=true]{background:linear-gradient(135deg,#344356,#1c303f);border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}.mode span{display:block;color:var(--muted);font-size:.82rem}.mode strong{font-size:clamp(1.1rem,3vw,1.65rem);color:var(--accent)}
+.hero{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;margin:16px 0}.panel,.meal-card,.weekly{background:var(--surface);border:1px solid var(--border);border-radius:19px;padding:19px}.label{color:var(--muted);font-size:.83rem}.big{font-size:clamp(2.5rem,7vw,4rem);font-weight:850;line-height:1.1;letter-spacing:-.045em}.big small{font-size:.95rem;font-weight:500;letter-spacing:0;color:var(--muted)}.meta{color:var(--muted);font-size:.86rem;margin:8px 0 0}.macro{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}.macro div{border-radius:12px;background:var(--surface2);padding:11px}.macro b{display:block;font-size:1.2rem}.macro span{font-size:.75rem;color:var(--muted)}.macro-line{height:8px;display:flex;overflow:hidden;border-radius:10px;margin-top:15px}.macro-line span:nth-child(1){background:#80d4d0}.macro-line span:nth-child(2){background:#f6c46d}.macro-line span:nth-child(3){background:#bba8f0}
+.section-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:30px 0 12px}.section-title h2{margin:0;font-size:1.3rem}.section-title p{margin:0;color:var(--muted);font-size:.82rem}
+.meal-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-bottom:14px}.meal-tab{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:12px;padding:11px 4px;font-weight:750;font-size:.79rem}.meal-tab[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:#16202c}
+.meal-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:6px}.meal-head h3{margin:0;font-size:1.2rem}.meal-head span{color:var(--cyan);font-size:.83rem}.meal-sub{color:var(--muted);font-size:.87rem;margin:0 0 16px}.option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.option{border:1px solid var(--border);background:var(--surface2);border-radius:14px;padding:14px}.option h4{margin:0 0 8px;color:var(--accent);font-size:1rem}.option.pick{width:100%;color:inherit;text-align:left;cursor:pointer}.option.pick[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}.option .estimate{font-size:.79rem;color:var(--cyan);margin:0 0 8px}.food{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #344356;padding:8px 0;font-size:.88rem}.food:first-of-type{border-top:0}.food span{color:var(--muted);min-width:0}.food strong{text-align:right;white-space:normal}.option-note{color:var(--muted);font-size:.79rem;margin:9px 0 0}.equivs{margin-top:13px;padding:13px;border:1px dashed #506277;border-radius:12px;color:var(--muted);font-size:.85rem}.equivs strong{color:var(--ink)}.equivs p{margin:6px 0 0}
+.weekly{margin-top:16px}.week-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.week-grid label{display:block;color:var(--muted);font-size:.85rem}.week-grid input{display:block;width:100%;margin-top:6px;background:#0f1721;border:1px solid var(--border);color:var(--ink);border-radius:10px;padding:10px}.week-results{display:flex;gap:22px;flex-wrap:wrap;margin-top:15px}.week-results strong{display:block;color:var(--accent);font-size:1.5rem}.week-results span{color:var(--muted);font-size:.8rem}.warning{color:#f8cf89;font-size:.84rem;margin:10px 0 0;min-height:1.2em}.disclaimer{margin-top:22px;color:var(--muted);font-size:.83rem;line-height:1.55}.disclaimer strong{color:var(--ink)}.hidden{display:none}
+@media(max-width:700px){.hero{grid-template-columns:1fr}.option-grid{grid-template-columns:1fr}.mode{padding:10px;min-height:86px}.mode span{font-size:.73rem}.meal-tab{font-size:.68rem;padding:11px 2px}.section-title{display:block}.section-title p{margin-top:4px}}
+@media(max-width:360px){.shell{padding-inline:10px}.meal-tab{font-size:.62rem}.mode strong{font-size:1.05rem}.macro{gap:5px}.macro div{padding:8px}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header><div class="eyebrow">Píter · nutrición y entrenamiento</div><h1>Tu panel de alimentación</h1><p class="lead">Elige el tipo de día. Las raciones se adaptan al entrenamiento; tú eliges una opción de cada comida.</p></header>
+<div class="modebar" role="group" aria-label="Tipo de día">
+<button class="mode" data-mode="rest" aria-pressed="true"><span>Sin deporte</span><strong>2.300 kcal</strong></button>
+<button class="mode" data-mode="boxing" aria-pressed="false"><span>Boxeo · 60 min</span><strong>2.600 kcal</strong></button>
+<button class="mode" data-mode="double" aria-pressed="false"><span>Pesas + boxeo</span><strong>3.000 kcal</strong></button>
+</div>
+<div class="hero">
+<section class="panel" aria-live="polite"><div class="label">Objetivo diario · déficit incluido</div><div class="big"><span id="calories">2.300</span> <small>kcal</small></div><p class="meta" id="maintenance">Mantenimiento estimado: 2.650–2.850 kcal</p><p class="meta" id="context">Día sin entrenamiento.</p></section>
+<section class="panel" aria-live="polite"><div class="label">Objetivo de macronutrientes</div><div class="macro"><div><b id="protein">180 g</b><span id="proteinPct">Proteína · 31 %</span></div><div><b id="fat">80 g</b><span id="fatPct">Grasa · 31 %</span></div><div><b id="carbs">215 g</b><span id="carbsPct">Hidratos · 38 %</span></div></div><div class="macro-line" aria-hidden="true"><span id="proteinBar" style="width:31%"></span><span id="fatBar" style="width:31%"></span><span id="carbsBar" style="width:38%"></span></div><p class="meta">Macros redondeados; la suma puede diferir ligeramente del objetivo calórico.</p></section>
+</div>
+<section class="panel" style="margin:15px 0" aria-live="polite"><div class="label">Tus cuatro elecciones · estimación por alimentos</div><div class="big" style="font-size:2.2rem"><span id="chosenCalories">—</span> <small>kcal</small></div><p class="meta" id="chosenMacros">Elige una opción de cada comida para ver calorías y macros aproximados.</p><p class="meta" id="chosenDiff"></p></section><div class="section-title"><h2>Tu menú del día</h2><p>Raciones visuales + peso para afinar</p></div>
+<nav class="meal-tabs" role="tablist" aria-label="Comidas">
+<button class="meal-tab" role="tab" aria-selected="true" data-meal="breakfast">Desayuno</button>
+<button class="meal-tab" role="tab" aria-selected="false" data-meal="lunch">Comida</button>
+<button class="meal-tab" role="tab" aria-selected="false" data-meal="snack">Merienda</button>
+<button class="meal-tab" role="tab" aria-selected="false" data-meal="dinner">Cena</button>
+<button class="meal-tab" role="tab" aria-selected="false" data-meal="equiv">Cambios</button>
+</nav>
+<section class="meal-card" id="mealPanel" role="tabpanel" aria-live="polite"></section>
+<section class="weekly"><div class="section-title" style="margin:0 0 13px"><h2>Calculadora semanal</h2><p>Los tres campos deben sumar 7 días</p></div><div class="week-grid">
+<label>Sin deporte<input id="restDays" type="number" min="0" max="7" step="1" value="3" inputmode="numeric"></label>
+<label>Boxeo<input id="boxingDays" type="number" min="0" max="7" step="1" value="4" inputmode="numeric"></label>
+<label>Pesas + boxeo<input id="doubleDays" type="number" min="0" max="7" step="1" value="0" inputmode="numeric"></label>
+</div><div class="week-results"><div><strong id="weeklyTotal">17.300 kcal</strong><span>Total semanal</span></div><div><strong id="weeklyAvg">2.471 kcal</strong><span>Media diaria</span></div></div><p class="warning" id="weekWarning" aria-live="polite"></p></section>
+<p class="disclaimer"><strong>Cómo usarlo:</strong> selecciona un modo y una opción por bloque. Las cantidades son referencias prácticas, no un cálculo exacto por plato: cambian según marca, tamaño de filetes, aceite y salsas. Las raciones de arroz y pasta se indican <strong>en seco</strong>; la patata, <strong>en crudo</strong>. En días sin entrenamiento, la merienda es una merienda normal, no un preentreno. Revisa el peso medio y el rendimiento tras 2–3 semanas para ajustar las calorías.</p>
+</main>
+<script>
+"use strict";
+const MODES={
+ rest:{kcal:2300,p:180,f:80,c:215,maintenance:"2.650–2.850",context:"Descanso · 5.000–8.000 pasos como referencia.",extra:0},
+ boxing:{kcal:2600,p:180,f:80,c:290,maintenance:"3.000–3.350",context:"Boxeo de 60 minutos. Más hidratos alrededor del entrenamiento.",extra:1},
+ double:{kcal:3000,p:180,f:80,c:390,maintenance:"3.350–3.800",context:"Pesas (45–60 min) y boxeo (60 min) el mismo día.",extra:2}
+};
+let mode=localStorage.getItem("nutritionMode") in MODES?localStorage.getItem("nutritionMode"):"rest";
+let meal=["breakfast","lunch","snack","dinner","equiv"].includes(localStorage.getItem("nutritionMeal"))?localStorage.getItem("nutritionMeal"):"breakfast";
+const $=id=>document.getElementById(id);
+const n=v=>v.toLocaleString("es-ES");
+const row=(food,visual,weight)=>`<div class="food"><div>${food}<br><span>${visual}</span></div><strong>${weight}</strong></div>`;
+// Valores de referencia por 100 g (o 100 ml para leche); no sustituyen etiquetas.
+const FOOD={bread:[265,9,3,49],slice:[250,9,4,46],tortilla:[310,8,8,51],oats:[380,13,7,65],rice:[365,7,1,80],cup:[150,3,1,32],pasta:[355,12,2,72],potato:[77,2,.1,17],chicken:[115,23,2,0],beef:[155,21,7,0],ham:[105,18,3,2],tuna:[110,25,1,0],eggs:[143,13,10,1],bacon:[350,15,32,1],cheese:[340,24,26,2],milk:[47,3.2,1.6,4.8],whey:[390,78,6,8],cream:[370,7,1,83],yogurt:[65,9,1,5],fruit:[55,.5,.2,13],banana:[90,1,.2,21],veg:[25,1,.2,4],oil:[900,0,100,0],pb:[600,25,50,20],cereal:[380,8,4,77],ice:[180,3,8,24]};
+// Cada ingrediente: [clave, nombre, gramos en descanso / boxeo / doble, referencia visual].
+const MENUS={
+ breakfast:[
+ {name:'Bocadillo de pollo',items:[['bread','Pan blanco o integral',[120,155,195],'bocadillo'],['chicken','Pechuga de pollo',[180,180,180],'2 filetes finos, si pesan ~180 g'],['veg','Tomate',[80,80,80],'al gusto'],['oil','AOVE',[10,10,10],'1 cucharada rasa'],['fruit','Fruta',[150,150,150],'1 pieza']],note:'Alternativa: lomo o ternera; cambia el aporte de grasa.'},
+ {name:'Sándwich de huevos y bacon',items:[['slice','Pan de sándwich',[120,155,200],'4 / 5 / 6 rebanadas aprox.; pesa las tuyas'],['eggs','Huevos enteros',[150,150,150],'3 huevos sin cáscara'],['bacon','Bacon',[25,25,25],'2 lonchas aprox.'],['veg','Tomate',[80,80,80],'al gusto'],['fruit','Fruta',[150,150,150],'1 pieza']],note:'Sin aceite ni queso adicional.'},
+ {name:'Almuerzo dulce',items:[['oats','Avena',[70,90,130],'bol; pesa en seco'],['milk','Leche semidesnatada',[250,250,250],'1 vaso'],['whey','Proteína en polvo',[30,30,30],'1 scoop'],['banana','Plátano',[120,120,120],'1 unidad mediana'],['pb','Crema de cacahuete',[10,10,10],'2 cucharaditas rasas']],note:'Canela o cacao desgrasado al gusto.'}
+ ],
+ lunch:[
+ {name:'Arroz con atún',items:[['cup','Arroz Brillante cocido',[125,190,250],'1 / 1½ / 2 vasitos'],['tuna','Atún al natural escurrido',[120,120,120],'1 lata grande o 2 pequeñas, según etiqueta'],['veg','Verduras',[150,150,150],'una buena ración'],['oil','AOVE',[5,5,5],'1 cucharadita'],['fruit','Fruta',[150,150,150],'1 pieza']],note:'Si el atún es en aceite, escúrrelo y ajusta el AOVE.'},
+ {name:'Sándwich de jamón york',items:[['slice','Pan de sándwich',[90,125,170],'3 / 4 / 5 rebanadas aprox.'],['ham','Jamón york',[120,120,120],'5–6 lonchas si pesan ~120 g'],['cheese','Queso',[20,20,20],'1 loncha'],['veg','Tomate y lechuga',[80,80,80],'al gusto'],['fruit','Fruta',[150,150,150],'1 pieza']],note:'Comprueba el peso real de tus rebanadas y lonchas.'},
+ {name:'Crema de arroz',items:[['cream','Crema de arroz en seco',[60,85,120],'bol; pesa en seco'],['whey','Whey o caseína',[35,35,35],'1 scoop generoso'],['banana','Plátano',[120,120,120],'1 unidad']],note:'Puedes añadir canela o cacao desgrasado.'}
+ ],
+ snack:[
+ {name:'Batido y fruta',items:[['whey','Proteína en polvo',[35,35,35],'1 scoop generoso'],['milk','Leche semidesnatada',[250,250,300],'1 vaso'],['fruit','Fruta',[150,200,250],'1 pieza / 1 pieza grande / 2 pequeñas'],['cereal','Cereales',[0,0,35],'sin extra / sin extra / 1 puñado']],note:'También sirve como merienda en días sin deporte.'},
+ {name:'Yogur con cereales',items:[['yogurt','Yogur proteico o queso fresco batido',[250,250,300],'1 bol; comprueba la etiqueta'],['cereal','Cereales',[30,55,90],'1 / 2 / 3 puñados medidos'],['fruit','Fruta',[100,100,100],'1 pieza pequeña']],note:'El yogur proteico y el queso fresco batido pueden tener macros distintos.'},
+ {name:'Sándwich ligero',items:[['slice','Pan de sándwich',[70,105,150],'2 / 3 / 4 rebanadas aprox.'],['ham','Jamón york',[100,100,120],'4–6 lonchas según tamaño'],['cheese','Queso',[20,20,20],'1 loncha'],['veg','Tomate o pepinillos',[50,50,50],'al gusto'],['fruit','Fruta',[0,0,150],'sólo en sesión doble']],note:'Sin aceite añadido.'}
+ ],
+ dinner:[
+ {name:'Pollo, hidrato y verduras',items:[['rice','Arroz en seco',[90,125,180],'pesa ANTES de cocer; consulta cambios'],['chicken','Pollo',[200,200,200],'2 filetes si pesan ~200 g'],['veg','Verduras',[200,200,200],'una buena ración'],['oil','AOVE',[10,10,10],'1 cucharada rasa'],['yogurt','Yogur natural/proteico',[125,125,125],'1 unidad']],note:'Puedes sustituir el arroz por pasta o patata con la tabla de cambios.'},
+ {name:'Cena rápida con vasitos',items:[['cup','Arroz Brillante cocido',[250,310,375],'2 / 2½ / 3 vasitos'],['chicken','Pollo, lomo o ternera',[200,200,200],'2 filetes si pesan ~200 g'],['veg','Verduras',[200,200,200],'una buena ración'],['fruit','Fruta',[150,150,150],'1 pieza']],note:'Salsa de tomate, soja o yogur con moderación; no se incluye aceite extra.'},
+ {name:'Patatas, huevos y conserva',items:[['potato','Patata cruda',[400,550,800],'pesa en crudo'],['eggs','Huevos enteros',[150,150,150],'3 huevos sin cáscara'],['tuna','Atún al natural escurrido',[80,80,80],'1 lata pequeña; caballa/sardinas cambian macros'],['veg','Verduras',[200,200,200],'una buena ración'],['yogurt','Yogur',[125,125,125],'1 unidad']],note:'Si usas caballa o sardinas en aceite, escúrrelas y no añadas AOVE.'}
+ ]};
+const MEAL_NAMES={breakfast:'Desayuno / almuerzo fuerte',lunch:'Comida ligera',snack:'Merienda',dinner:'Cena'};
+const MODE_INDEX={rest:0,boxing:1,double:2};
+let choices={};try{choices=JSON.parse(localStorage.getItem('nutritionChoices')||'{}')||{}}catch(e){choices={}}
+const card=(name,items,note="")=>`<article class="option"><h4>${name}</h4>${items.map(x=>row(...x)).join("")}${note?`<p class="option-note">${note}</p>`:""}</article>`;
+function calc(items){let kcal=0,p=0,f=0,c=0;for(const [key,,amounts] of items){const g=amounts[MODE_INDEX[mode]],v=FOOD[key];kcal+=g*v[0]/100;p+=g*v[1]/100;f+=g*v[2]/100;c+=g*v[3]/100}return {kcal,p,f,c}}
+function chosenSummary(){let sums={kcal:0,p:0,f:0,c:0},count=0;for(const key of Object.keys(MENUS)){const i=choices[key];if(Number.isInteger(i)&&MENUS[key][i]){const v=calc(MENUS[key][i].items);for(const k of Object.keys(sums))sums[k]+=v[k];count++}}if(count){$('chosenCalories').textContent=n(Math.round(sums.kcal));$('chosenMacros').textContent=`${count}/4 comidas · proteína ${Math.round(sums.p)} g · grasas ${Math.round(sums.f)} g · hidratos ${Math.round(sums.c)} g`;$('chosenDiff').textContent=count===4?`Diferencia estimada frente al objetivo: ${Math.round(sums.kcal-MODES[mode].kcal)>0?'+':''}${n(Math.round(sums.kcal-MODES[mode].kcal))} kcal. Ajusta raciones o productos si necesitas acercarte más.`:'Selecciona las comidas restantes para ver el total del día.'}else{$('chosenCalories').textContent='—';$('chosenMacros').textContent='Elige una opción de cada comida para ver calorías y macros aproximados.';$('chosenDiff').textContent=''}}
+function renderMeal(){if(meal==='equiv'){$('mealPanel').innerHTML=`<div class="meal-head"><h3>Tabla de cambios</h3><span>Referencias</span></div><p class="meal-sub">Cantidades orientativas para sustituir el hidrato de una cena; arroz y pasta siempre en seco.</p><div class="option-grid">${card('Hidratos · equivalencia energética aproximada',[['Arroz seco','80 g','≈292 kcal'],['Pasta seca','82 g','≈291 kcal'],['Patata cruda','380 g','≈293 kcal'],['Pan','110 g','≈292 kcal'],['Tortillas de 35 g','≈94 g / 2,7 unidades','≈291 kcal'],['Vasito de arroz','≈195 g / 1½ vasitos','≈293 kcal']],'No son equivalencias exactas de hidratos. Las patatas congeladas preparadas requieren consultar su etiqueta.')}${card('Proteínas · no idénticas',[['Pollo','2 filetes finos','≈180–200 g si realmente pesan eso'],['Lomo o ternera','2 filetes finos','pesar: cambia la grasa'],['Huevos + jamón york','3 huevos + 3 lonchas','no equivale exactamente a pollo'],['Atún','1 lata grande o 2 pequeñas','peso escurrido según etiqueta'],['Caballa / sardinas','1 lata grande','más grasa que atún al natural']],'Sin tofu ni claras. Escurre las conservas y ajusta aceite/queso.')}</div>`;return}
+const options=MENUS[meal];$('mealPanel').innerHTML=`<div class="meal-head"><h3>${MEAL_NAMES[meal]}</h3><span>${mode==='rest'?'Descanso':mode==='boxing'?'Boxeo':'Sesión doble'}</span></div><p class="meal-sub">Elige UNA de las tres opciones. Las cantidades cambian con el modo. Las cifras son estimaciones de ingredientes de referencia.</p><div class="option-grid">${options.map((o,i)=>{const v=calc(o.items);return `<button type="button" class="option pick" data-choice="${i}" aria-pressed="${choices[meal]===i}"><h4>${String(i+1).padStart(2,'0')} · ${o.name}</h4><p class="estimate">≈ ${Math.round(v.kcal)} kcal · P ${Math.round(v.p)} g · G ${Math.round(v.f)} g · HC ${Math.round(v.c)} g</p>${o.items.filter(x=>x[2][MODE_INDEX[mode]]>0).map(x=>row(x[1],x[3],x[2][MODE_INDEX[mode]]+' g')).join('')}<p class="option-note">${o.note}</p></button>`}).join('')}</div>`;document.querySelectorAll('[data-choice]').forEach(b=>b.addEventListener('click',()=>{choices[meal]=Number(b.dataset.choice);localStorage.setItem('nutritionChoices',JSON.stringify(choices));renderMeal();chosenSummary()}))}
+function render(){
+ const m=MODES[mode];$("calories").textContent=n(m.kcal);$("maintenance").textContent=`Mantenimiento estimado: ${m.maintenance} kcal`;$("context").textContent=m.context;
+ for(const [id,val] of [["protein",m.p],["fat",m.f],["carbs",m.c]])$(id).textContent=val+" g";
+ const total=m.p*4+m.f*9+m.c*4;
+ for(const [id,energy,label] of [["protein",m.p*4,"Proteína"],["fat",m.f*9,"Grasa"],["carbs",m.c*4,"Hidratos"]]){
+ const pct=Math.round(energy/total*100);$(id+"Pct").textContent=`${label} · ${pct} %`;$(id+"Bar").style.width=(energy/total*100)+"%";
+ }
+ document.querySelectorAll(".mode").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===mode)));
+ document.querySelectorAll(".meal-tab").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.meal===meal)));
+ renderMeal();chosenSummary();
+}
+document.querySelectorAll(".mode").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.mode;localStorage.setItem("nutritionMode",mode);render()}));
+document.querySelectorAll(".meal-tab").forEach(b=>b.addEventListener("click",()=>{meal=b.dataset.meal;localStorage.setItem("nutritionMeal",meal);render()}));
+function week(){
+ const ids=["restDays","boxingDays","doubleDays"];const vals=ids.map(id=>Number($(id).value));const valid=vals.every(x=>Number.isInteger(x)&&x>=0&&x<=7)&&vals.reduce((a,b)=>a+b,0)===7;
+ $("weekWarning").textContent=valid?"":"Introduce números enteros entre 0 y 7 que sumen exactamente 7 días.";
+ $("weeklyTotal").textContent=valid?n(vals[0]*2300+vals[1]*2600+vals[2]*3000)+" kcal":"—";
+ $("weeklyAvg").textContent=valid?n(Math.round((vals[0]*2300+vals[1]*2600+vals[2]*3000)/7))+" kcal":"—";
+}
+["restDays","boxingDays","doubleDays"].forEach(id=>$(id).addEventListener("input",week));
+render();week();
+</script>
+</body>
+</html>
