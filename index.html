@@ -1,0 +1,2870 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PETER FIT - 16-Bit RPG Nutrition & Performance</title>
+<style>
+  :root {
+    --bg-dark: #090b10;
+    --win-bg: #141c2e;
+    --win-bg-grad: linear-gradient(180deg, #1d2b44 0%, #101726 100%);
+    --gold-light: #f6d673;
+    --gold-mid: #c8963e;
+    --gold-dark: #6e4c1b;
+    --hp-color: #e53935;
+    --hp-light: #ff6f60;
+    --mp-color: #1e88e5;
+    --mp-light: #6ab7ff;
+    --xp-color: #43a047;
+    --xp-light: #76d275;
+    --accent: #E7F05A;
+    --text-main: #f5f5f5;
+    --text-muted: #9ca3af;
+    --danger: #ef4444;
+    --success: #22c55e;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--bg-dark);
+    background-image: 
+      radial-gradient(#1e293b 1px, transparent 1px),
+      radial-gradient(#0f172a 1px, #090b10 1px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    color: var(--text-main);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.45;
+    padding-bottom: 90px;
+    min-height: 100vh;
+  }
+
+  /* Tipografía estilo RPG retro para encabezados y números */
+  .pixel-title {
+    font-family: "Courier New", Courier, monospace;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 0px #000;
+  }
+
+  /* Marco clásico 16-Bit (Estilo Golden Sun / SNES) */
+  .rpg-box {
+    background: var(--win-bg-grad);
+    border: 3px solid var(--gold-mid);
+    outline: 2px solid #000;
+    box-shadow: 
+      inset 0 0 0 2px var(--gold-dark),
+      0 6px 0 rgba(0,0,0,0.6);
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+
+  .rpg-box::before {
+    content: "";
+    position: absolute;
+    top: 2px; left: 2px; right: 2px; bottom: 2px;
+    border: 1px solid rgba(246, 214, 115, 0.25);
+    pointer-events: none;
+  }
+
+  .rpg-header {
+    background: linear-gradient(90deg, #3b2313 0%, #6e4c1b 50%, #3b2313 100%);
+    border-bottom: 2px solid var(--gold-light);
+    margin: -14px -14px 12px -14px;
+    padding: 8px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--gold-light);
+  }
+
+  /* Layout responsive */
+  .app-container {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 10px;
+  }
+
+  @media (min-width: 860px) {
+    body { padding-bottom: 20px; padding-left: 220px; }
+    .nav-bar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: 210px;
+      flex-direction: column !important;
+      justify-content: flex-start !important;
+      padding: 16px 10px !important;
+      border-right: 3px solid var(--gold-mid);
+      border-top: none !important;
+    }
+    .nav-btn {
+      width: 100%;
+      justify-content: flex-start !important;
+      padding: 12px !important;
+      margin-bottom: 8px;
+      font-size: 0.9rem !important;
+    }
+    .nav-btn span.icon { font-size: 1.2rem; margin-right: 10px; }
+  }
+
+  /* Barra de estado del Héroe (Sticky arriba) */
+  .hero-hud {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    align-items: center;
+  }
+
+  @media (max-width: 600px) {
+    .hero-hud { grid-template-columns: 1fr; }
+  }
+
+  .sprite-stage {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #0b0e17;
+    border: 2px solid var(--gold-mid);
+    padding: 8px;
+    border-radius: 4px;
+    position: relative;
+  }
+
+  canvas#heroCanvas {
+    width: 88px;
+    height: 88px;
+    image-rendering: pixelated;
+    background: radial-gradient(circle at center, #26334d 0%, #0b0e17 80%);
+    border: 2px solid var(--gold-dark);
+    cursor: pointer;
+  }
+
+  .hero-identity {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .lvl-badge {
+    display: inline-block;
+    background: var(--gold-mid);
+    color: #000;
+    font-weight: 900;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    font-family: monospace;
+  }
+
+  .pose-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .pose-btn {
+    background: #1e293b;
+    color: var(--gold-light);
+    border: 1px solid var(--gold-dark);
+    padding: 3px 6px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .pose-btn.active {
+    background: var(--gold-mid);
+    color: #000;
+    font-weight: bold;
+  }
+
+  /* Barras RPG (HP / MP / XP) */
+  .bars-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: 42px 1fr 82px;
+    align-items: center;
+    gap: 8px;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 0.85rem;
+  }
+
+  .bar-outer {
+    height: 16px;
+    background: #07090e;
+    border: 2px solid #475569;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bar-inner {
+    height: 100%;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .bar-hp { background: linear-gradient(90deg, var(--hp-color), var(--hp-light)); }
+  .bar-mp { background: linear-gradient(90deg, var(--mp-color), var(--mp-light)); }
+  .bar-xp { background: linear-gradient(90deg, var(--xp-color), var(--xp-light)); }
+
+  /* Botones RPG */
+  .rpg-btn {
+    background: linear-gradient(180deg, #3b4c6b 0%, #1e293b 100%);
+    color: #fff;
+    border: 2px solid var(--gold-mid);
+    padding: 8px 12px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #000;
+    transition: transform 0.08s, filter 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .rpg-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #000;
+  }
+
+  .rpg-btn.gold {
+    background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold-mid) 100%);
+    color: #111;
+    border-color: #fff;
+  }
+
+  .rpg-btn.green {
+    background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+    color: #052e16;
+    border-color: #bbf7d0;
+  }
+
+  .rpg-btn.red {
+    background: linear-gradient(180deg, #f87171 0%, #dc2626 100%);
+    color: #fff;
+  }
+
+  .rpg-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: grayscale(0.8);
+  }
+
+  /* Grids y tarjetas */
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+
+  .stat-card {
+    background: rgba(11, 14, 23, 0.75);
+    border: 1px solid var(--gold-dark);
+    padding: 10px;
+    border-radius: 4px;
+  }
+  .stat-card .label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+  .stat-card .val { font-size: 1.35rem; font-weight: 800; color: var(--accent); font-family: monospace; margin-top: 2px; }
+  .stat-card .sub { font-size: 0.75rem; color: var(--gold-light); margin-top: 2px; }
+
+  /* Misiones / Pasos */
+  .steps-tier-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin: 10px 0;
+  }
+  @media (max-width: 500px) {
+    .steps-tier-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .step-tier-btn {
+    background: #0f172a;
+    border: 2px solid #334155;
+    color: var(--text-main);
+    padding: 10px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.15s;
+  }
+  .step-tier-btn.selected {
+    background: rgba(231, 240, 90, 0.18);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(231, 240, 90, 0.3);
+  }
+  .step-tier-btn .s-num { font-weight: 900; font-size: 1rem; color: var(--gold-light); display: block; }
+  .step-tier-btn .s-xp { font-size: 0.75rem; color: #4ade80; font-family: monospace; }
+
+  .quest-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .quest-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.85);
+    border: 2px solid #334155;
+    padding: 10px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .quest-item.done {
+    border-color: var(--success);
+    background: rgba(22, 163, 74, 0.15);
+  }
+  .quest-info { display: flex; align-items: center; gap: 10px; }
+  .quest-check {
+    width: 24px; height: 24px;
+    border: 2px solid var(--gold-mid);
+    background: #090b10;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; color: var(--accent);
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .quest-badge {
+    font-family: monospace;
+    font-size: 0.78rem;
+    padding: 3px 7px;
+    background: #1e293b;
+    border: 1px solid var(--gold-dark);
+    color: var(--gold-light);
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  /* Formularios y tablas */
+  input, select, textarea {
+    background: #090d16;
+    border: 2px solid #334155;
+    color: var(--text-main);
+    padding: 9px 10px;
+    border-radius: 4px;
+    width: 100%;
+    font-size: 0.92rem;
+    font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--gold-light);
+  }
+  label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--gold-light);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th, td {
+    padding: 8px 6px;
+    text-align: left;
+    border-bottom: 1px solid #26334d;
+  }
+  th { color: var(--gold-light); font-size: 0.78rem; text-transform: uppercase; }
+
+  /* Navegación Inferior / Lateral */
+  .nav-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #0b0f19;
+    border-top: 3px solid var(--gold-mid);
+    display: flex;
+    justify-content: space-around;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    z-index: 1000;
+    overflow-x: auto;
+  }
+  .nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .nav-btn span.icon { font-size: 1.15rem; margin-bottom: 2px; }
+  .nav-btn.active {
+    color: #000;
+    background: var(--gold-light);
+    box-shadow: 0 2px 0 var(--gold-dark);
+  }
+
+  /* Secciones */
+  .tab-section { display: none; }
+  .tab-section.active { display: block; animation: fadeIn 0.2s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Notificación flotante tipo RPG */
+  #toast {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    max-width: 420px;
+    margin: 0 auto;
+    background: #141c2e;
+    border: 3px solid var(--gold-light);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.85);
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 6px;
+    z-index: 3000;
+    display: none;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 6px;
+    font-size: 0.72rem;
+    border-radius: 3px;
+    background: #1e293b;
+    color: var(--accent);
+    border: 1px solid #334155;
+    margin-right: 4px;
+  }
+
+  .recipe-ingredient-list {
+    list-style: none;
+    margin: 8px 0;
+  }
+  .recipe-ingredient-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px dashed #26334d;
+    font-size: 0.86rem;
+  }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .photo-card {
+    background: #090d16;
+    border: 2px solid var(--gold-dark);
+    padding: 6px;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .photo-card img {
+    width: 100%;
+    height: 130px;
+    object-fit: cover;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="app-container">
+
+  <!-- CABECERA RPG PERSISTENTE: FICHA DE PERSONAJE -->
+  <div class="rpg-box">
+    <div class="rpg-header">
+      <span class="pixel-title">⚔️ PETER FIT: CRÓNICAS DEL HÉROE (16-BIT EDITION)</span>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span id="currentDateBadge" style="font-family:monospace; font-size:0.8rem;"></span>
+        <button class="rpg-btn" style="padding:3px 8px; font-size:0.75rem;" onclick="toggleSound()" id="soundBtn">🔊 SFX</button>
+      </div>
+    </div>
+
+    <div class="hero-hud">
+      <!-- Escenario del Sprite -->
+      <div class="sprite-stage">
+        <canvas id="heroCanvas" width="64" height="64" title="Haz clic para animar al héroe"></canvas>
+        <div class="hero-identity">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="pixel-title" style="font-size:1.1rem; color:var(--gold-light);">PETER</span>
+            <span class="lvl-badge" id="heroLevelBadge">LVL 1</span>
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-muted);" id="heroClassTitle">Púgil de las Tierras Bajas</div>
+          <div style="font-size:0.75rem; color:var(--accent);" id="equippedSummary">Sin reliquia equipada</div>
+          <div class="pose-selector">
+            <button class="pose-btn active" onclick="setHeroPose('idle')" id="pose-idle">🧍 Guardia</button>
+            <button class="pose-btn" onclick="setHeroPose('box')" id="pose-box">🥊 Boxeo</button>
+            <button class="pose-btn" onclick="setHeroPose('run')" id="pose-run">🏃 Pasos</button>
+            <button class="pose-btn" onclick="setHeroPose('fire')" id="pose-fire">🔥 Hoguera</button>
+            <button class="pose-btn" onclick="setHeroPose('map')" id="pose-map">🗺️ Mapa</button>
+            <button class="pose-btn" onclick="setHeroPose('ko')" id="pose-ko">💀 K.O.</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barras de Vida, Maná y Experiencia -->
+      <div class="bars-container">
+        <div class="stat-row">
+          <span style="color:var(--hp-light);">❤️ HP</span>
+          <div class="bar-outer"><div class="bar-inner bar-hp" id="hpBar" style="width:100%;"></div></div>
+          <span id="hpText">100 / 100</span>
+        </div>
+        <div class="stat-row">
+          <span style="color:var(--mp-light);">💧 MP</span>
+          <div class="bar-outer"><div class="bar-inner bar-mp" id="mpBar" style="width:100%;"></div></div>
+          <span id="mpText">50 / 50</span>
+        </div>
+        <div class="stat-row">
+          <span style="color:var(--xp-light);">✨ XP</span>
+          <div class="bar-outer"><div class="bar-inner bar-xp" id="xpBar" style="width:0%;"></div></div>
+          <span id="xpText">0 / 250</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-top:2px;">
+          <span style="font-size:0.75rem; color:var(--text-muted);" id="dayStreakStatus">🔥 Fase de 14 días: Día 1 de 14</span>
+          <div style="display:flex; gap:6px;">
+            <button class="rpg-btn" style="padding:4px 8px; font-size:0.73rem;" onclick="switchTab('grimoire')">🔮 Grimorio & Botín</button>
+            <button class="rpg-btn gold" style="padding:4px 8px; font-size:0.73rem;" onclick="simulateMidnightProcess()">🌙 Cerrar Día (00:01)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       PESTAÑA 1: INICIO (DASHBOARD + MISIONES DIARIAS RPG)
+       ========================================================= -->
+  <section id="tab-dashboard" class="tab-section active">
+
+    <!-- Panel de Misiones Diarias (Gana XP, Protege tu HP) -->
+    <div class="rpg-box">
+      <div class="rpg-header">
+        <span class="pixel-title">📜 TABLÓN DE MISIONES DEL DÍA (ACTIVA TUS LOGROS)</span>
+        <span style="font-size:0.75rem; color:#fff;">¡Si a las 00:01 no has marcado NADA, perderás HP!</span>
+      </div>
+
+      <!-- Selector de Rango de Pasos -->
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <label>👣 RANGO DE PASOS COMPLETADOS HOY (Toca tu marca para ganar XP):</label>
+          <span class="tag" id="stepsTierStatus">Sin reclamar hoy</span>
+        </div>
+        <div class="steps-tier-grid">
+          <div class="step-tier-btn" id="tier-8000" onclick="selectStepsTier(8000, 50)">
+            <span class="s-num">8.000</span>
+            <span class="s-xp">+50 XP</span>
+          </div>
+          <div class="step-tier-btn" id="tier-10000" onclick="selectStepsTier(10000, 80)">
+            <span class="s-num">10.000</span>
+            <span class="s-xp">+80 XP</span>
+          </div>
+          <div class="step-tier-btn" id="tier-12000" onclick="selectStepsTier(12000, 115)">
+            <span class="s-num">12.000</span>
+            <span class="s-xp">+115 XP</span>
+          </div>
+          <div class="step-tier-btn" id="tier-15000" onclick="selectStepsTier(15000, 160)">
+            <span class="s-num">15.000</span>
+            <span class="s-xp">+160 XP</span>
+          </div>
+          <div class="step-tier-btn" id="tier-20000" onclick="selectStepsTier(20000, 225)">
+            <span class="s-num">20.000</span>
+            <span class="s-xp">+225 XP</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de las 7 Tareas Diarias obligatorias/opcionales -->
+      <div class="quest-list" id="dailyQuestsContainer"></div>
+    </div>
+
+    <!-- Las 10 Tarjetas del Dashboard requeridas por el JSON -->
+    <div class="rpg-box">
+      <div class="rpg-header">
+        <span class="pixel-title">📊 ESTADO DE CAMPAÑA Y NUTRICIÓN (HOY)</span>
+        <span style="font-size:0.75rem;">Mantenimiento est.: 3.225 kcal (no medido)</span>
+      </div>
+      <div class="grid-4" id="dashboardCardsContainer"></div>
+    </div>
+
+    <!-- Horario Diario Operativo -->
+    <div class="rpg-box">
+      <div class="rpg-header">
+        <span class="pixel-title">⏳ CRONOGRAMA DIARIO DEL GUERRERO</span>
+      </div>
+      <div class="grid-4">
+        <div class="stat-card"><div class="label">06:30 · Despertar & Café</div><div class="sub">Objetivo: ~50 kcal</div></div>
+        <div class="stat-card"><div class="label">09:30-11:00 · Almuerzo</div><div class="sub">Objetivo: ~850 kcal (Fiambrera)</div></div>
+        <div class="stat-card"><div class="label">13:30-14:00 · Comida</div><div class="sub">Objetivo: ~450 kcal (Pre-Boxeo)</div></div>
+        <div class="stat-card"><div class="label">16:00 · Sesión Boxeo</div><div class="sub">2-3 sesiones/sem</div></div>
+        <div class="stat-card"><div class="label">17:30-18:00 · Merienda</div><div class="sub">Objetivo: ~400 kcal (&lt;5 min)</div></div>
+        <div class="stat-card"><div class="label">20:00 · Cena + Postre</div><div class="sub">Objetivo: ~1.050 kcal (Saciante)</div></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- =========================================================
+       PESTAÑA 2: MI MENÚ (PLAN DE 14 DÍAS + RECETAS + SWAPS)
+       ========================================================= -->
+  <section id="tab-nutrition" class="tab-section">
+    <div class="rpg-box">
+      <div class="rpg-header">
+        <span class="pixel-title">🍖 RACIONES DE CAMPAÑA (PLAN FIJO 14 DÍAS)</span>
+        <span style="font-size:0.75rem;">Objetivo: 2.800 kcal | 165g P | 335g HC | 89g G</span>
+      </div>
+      <p style="font-size:0.83rem; color:var(--text-muted); margin-bottom:10px;">
+        <strong>Principio operativo:</strong> Minimizar decisiones durante 14 días. Los pesos de arroz seco, pasta y carnes se expresan <strong>en crudo</strong>. El aceite siempre en gramos. Verduras no feculentas libres con cargo estimado energético real.
+      </p>
+
+      <div class="grid-2" style="margin-bottom:12px;">
+        <div>
+          <label>📅 Seleccionar Día de la Fase (1 a 14):</label>
+          <select id="menuDaySelect" onchange="renderMenuDay()"></select>
+        </div>
+        <div>
+          <label>🥪 Opción de Desayuno-Almuerzo (09:30 - Transportable):</label>
+          <select id="breakfastTypeSelect" onchange="saveMenuChoice()">
+            <option value="salado">Opción Salada: Mollete/Bagel Ibérico-Pavo + Queso/Huevo + Fruta</option>
+            <option value="dulce">Opción Dulce: Gachas Nocturnas de Avena/Crema de Arroz, Whey y Frutos Secos</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:12px;">
+        <div>
+          <label>🔄 Hidrato en Comida (13:30 - Fácil digestión pre-boxeo):</label>
+          <select id="lunchCarbSwapSelect" onchange="saveMenuChoice()">
+            <option value="brillante">Base: 1 Vasito y medio Arroz Brillante (187 g cocido)</option>
+            <option value="arroz_seco">Equivalencia: Arroz seco en crudo (70 g)</option>
+            <option value="pasta">Equivalencia: Pasta seca en crudo (72 g)</option>
+            <option value="patata">Equivalencia: Patata cruda pelada (315 g)</option>
+            <option value="crema_arroz">Equivalencia: Crema de arroz (68 g)</option>
+          </select>
+        </div>
+        <div>
+          <label>🔄 Hidrato en Cena (20:00 - Comida principal saciante):</label>
+          <select id="dinnerCarbSwapSelect" onchange="saveMenuChoice()">
+            <option value="tortillas_patata">Base: 3 Tortillas mexicanas (120 g) + Patata al horno (250 g)</option>
+            <option value="arroz_seco">Equivalencia total HC: Arroz seco en crudo (130 g)</option>
+            <option value="pasta">Equivalencia total HC: Pasta seca en crudo (135 g)</option>
+            <option value="patata_pura">Equivalencia total HC: Patata cruda (580 g)</option>
+            <option value="pan_boniato">Equivalencia total HC: Pan (100 g) + Boniato crudo (260 g)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Resumen energético dinámico del menú seleccionado -->
+      <div class="stat-card" id="menuTotalsBanner" style="margin-bottom:14px; border-color:var(--gold-light);"></div>
+
+      <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+        <button class="rpg-btn green" onclick="applyMenuToTodayCheckin()">✅ Volcar este menú al Registro de Hoy (+Cumplir Menú)</button>
+      </div>
+
+      <!-- Contenedor de las 5 comidas detalladas -->
+      <div id="mealsDetailContainer"></div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       PESTAÑA 3: EQUIVALENCIAS DE CARBOHIDRATOS (EDITABLE)
+       ========================================================= -->
+  <section id="tab-equivalences" class="tab-section">
+    <div class="rpg-box">
+      <div class="rpg-header">
+        <span class="pixel-title">⚖️ ALQUIMIA DE HIDRATOS (CALCULADORA Y BASE EDITABLE)</span>
+      </div>
+      <p style="font-size:0.83rem; color:var(--text-muted); margin-bottom:12px;">
+        Calcula equivalencias exactas sin inventar ratios fijos falsos. Elige si deseas igualar por <strong>gramos de carbohidratos netos</strong> o por <strong>energía total (kcal)</strong>.
+      </p>
+
+      <div class="grid-3" style="margin-bottom:14px;">
+        <div>
+          <label>Alimento de Origen:</label>
+          <select id="eqSourceFood" onchange="calculateEquivalences()"></select>
+        </div>
+        <div>
+          <label>Cantidad en Gramos (en crudo / según envase):</label>
+          <input type="number" id="eqSourceGrams" value="100" min="10" max="1500" oninput="calculateEquivalences()">
+        </div>
+        <div>
+          <label>Criterio de Equivalencia:</label>
+          <select id="eqCriterion" onchange="calculateEquivalences()">
+            <option value="carbs">Igualar Carbohidratos (g HC)</option>
+            <option value="kcal">Igualar Energía (kcal)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="eqSourceSummary" class="stat-card" style="margin-bottom:14px;"></div>
+
+      <div class="grid-3" id="eqResultsGrid"></div>
+    </div>
+
+    <!-- Base de datos nutricional interna editable -->
+    <div class="rpg-box">
+      <div class="rpg-header">
+        <span class="pixel-title">📚 TABLA NUTRICIONAL INTERNA (VALORES POR 100g - EDITABLES)</span>
+        <button class="rpg-btn" style="padding:3px 8px; font-size:0.75rem;" onclick="resetFoodDB()">Restaurar Base</button>
+      </div>
+      <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
+        *Nota: Valores de referencia estimados (BEDCA/USDA). Si tu paquete comercial difiere en su etiqueta, edítalo aquí directamente.
+      </p>
+      <div style="overflow-x:auto;">
+        <table id="foodDbTable"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       PESTAÑA 4: PROGRESO (PESO, CINTURA, FOTOS INDEXEDDB, SEMANAL)
+       ========================================================= -->
+  <section id="tab-progress" class="tab-section">
+    <!-- Registro Diario y Peso -->
+    <div class="grid-2">
+      <div class="rpg-box">
+        <div class="rpg-header">
+          <span class="pixel-title">⚖️ REGISTRO DE PESO Y TENDENCIA (90 KG GOAL)</span>
+        </div>
+        <div class="grid-2" style="margin-bottom:10px;">
+          <div>
+            <label>Fecha:</label>
+            <input type="date" id="weightDateInput">
+          </div>
+          <div>
+            <label>Peso en ayunas (kg):</label>
+            <input type="number" id="weightValInput" step="0.1" placeholder="Ej. 106.8">
+          </div>
+        </div>
+        <button class="rpg-btn gold" style="width:100%; margin-bottom:10px;" onclick="saveWeightEntry()">💾 Guardar Pesaje (+40 XP)</button>
+        <p style="font-size:0.76rem; color:var(--text-muted);">
+          ⚠️ Recuerda: Las fluctuaciones diarias reflejan glucógeno, agua y tránsito intestinal, no grasa perdida o ganada en 24h. Nos guiamos por la media móvil de 7 días.
+        </p>
+        <div class="grid-3" style="margin-top:10px;" id="weightStatsSummary"></div>
+      </div>
+
+      <div class="rpg-box">
+        <div class="rpg-header">
+          <span class="pixel-title">📏 PERÍMETRO DE CINTURA (SEMANAL/QUINCENAL)</span>
+        </div>
+        <div class="grid-2" style="margin-bottom:10px;">
+          <div>
+            <label>Fecha:</label>
+            <input type="date" id="waistDateInput">
+          </div>
+          <div>
+            <label>Cintura a nivel umbilical (cm):</label>
+            <input type="number" id="waistValInput" step="0.5" placeholder="Ej. 102.0">
+          </div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label>Notas de composición / sensaciones:</label>
+          <input type="text" id="waistNotesInput" placeholder="Ej. Menos hinchazón abdominal">
+        </div>
+        <button class="rpg-btn" style="width:100%;" onclick="saveWaistEntry()">💾 Guardar Medida de Cintura</button>
+        <div id="waistListContainer" style="margin-top:10px; max-height:150px; overflow-y:auto;"></div>
+      </div>
+    </div>
+
+    <!-- Gráfico Real en Canvas de Peso y Media Móvil -->
+    <div class="rpg-box">
+      <div class="rpg-header">
+        <span class="pixel-title">📈 GRÁFICO DE PESO DIARIO Y MEDIA MÓVIL (7 DÍAS)</span>
+      </div>
+      <canvas id="weightChartCanvas" width="800" height="250" style="width:100%; height:230px; background:#090d16; border:1px solid #334155; border-radius:4px;"></canvas>
+      <div style="overflow-x:auto; margin-top:12px;">
+        <table id="weightHistoryTable"></table>
+      </div>
+    </div>
+
+    <!-- Check-in Diario Completo y Revisión Semanal -->
+    <div class="grid-2">
+      <div class="rpg-box">
+        <div class="rpg-header">
+          <span class="pixel-title">📝 CHECK-IN DIARIO DE BIO-MARCADORES</span>
+        </div>
+        <div class="grid-2" style="margin-bottom:8px;">
+          <div><label>Fecha:</label><input type="date" id="chkDate" onchange="loadCheckinForDate()"></div>
+          <div><label>Calorías consumidas:</label><input type="number" id="chkKcal" placeholder="2800"></div>
+          <div><label>Proteína (g):</label><input type="number" id="chkProt" placeholder="165"></div>
+          <div><label>Carbohidratos (g):</label><input type="number" id="chkCarb" placeholder="335"></div>
+          <div><label>Grasas (g):</label><input type="number" id="chkFat" placeholder="89"></div>
+          <div><label>Pasos totales:</label><input type="number" id="chkSteps" placeholder="9000"></div>
+          <div><label>Horas de Sueño (Recarga MP):</label><input type="number" step="0.5" id="chkSleep" placeholder="7.5"></div>
+          <div><label>Hambre (1=Baja, 5=Voraz):</label><input type="number" min="1" max="5" id="chkHunger" value="2"></div>
+          <div><label>Energía (1=Baja, 5=Tope):</label><input type="number" min="1" max="5" id="chkEnergy" value="4"></div>
+          <div><label>Estrés (1=Bajo, 5=Alto):</label><input type="number" min="1" max="5" id="chkStress" value="2"></div>
+        </div>
+        <div style="display:flex; gap:14px; margin:8px 0;">
+          <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="chkBoxing" style="width:auto;"> 🥊 Boxeo hecho</label>
+          <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="chkStrength" style="width:auto;"> 🏋️ Fuerza hecha</label>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label>Notas del día:</label>
+          <input type="text" id="chkNotes" placeholder="Rendimiento en el saco, digestión, descanso...">
+        </div>
+        <button class="rpg-btn green" style="width:100%;" onclick="saveDailyCheckin()">💾 Guardar Check-in Diario (+Recarga MP si sueño ≥7h)</button>
+      </div>
+
+      <!-- Revisión Semanal Inteligente -->
+      <div class="rpg-box">
+        <div class="rpg-header">
+          <span class="pixel-title">🔍 ORÁCULO DE REVISIÓN SEMANAL</span>
+        </div>
+        <div id="weeklyReviewContainer"></div>
+      </div>
+    </div>
+
+    <!-- Fotografías de Progreso en IndexedDB -->
+    <div class="rpg-box">
+      <div class="rpg-header">
+        <span class="pixel-title">📷 CÁMARA DE CRISTAL (FOTOGRAFÍAS EN INDEXEDDB LOCAL)</span>
+      </div>
+      <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:10px;">
+        🔒 Privacidad total: Tus fotos jamás se suben a ningún servidor. Como <code>localStorage</code> no soporta imágenes pesadas, se guardan en la base de datos <strong>IndexedDB</strong> interna de tu dispositivo.
+      </p>
+      <div class="grid-3" style="align-items:end;">
+        <div>
+          <label>Fecha de la captura:</label>
+          <input type="date" id="photoDateInput">
+        </div>
+        <div>
+          <label>Seleccionar Fotografía:</label>
+          <input type="file" id="photoFileInput" accept="image/*">
+        </div>
+        <div>
+          <button class="rpg-btn gold" style="width:100%;" onclick="addProgressPhoto()">➕ Guardar Foto en IndexedDB</button>
+        </div>
+      </div>
+      <div class="photo-grid" id="photoGalleryContainer"></div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       PESTAÑA 5: ENTRENAMIENTO (BOXEO + FUERZA)
+       ========================================================= -->
+  <section id="tab-training" class="tab-section">
+    <div class="grid-2">
+      <div class="rpg-box">
+        <div class="rpg-header">
+          <span class="pixel-title">🥊 DOJO DE BOXEO (2-3 SESIONES / SEMANA - 16:00)</span>
+        </div>
+        <p style="font-size:0.84rem; margin-bottom:10px;">
+          <strong>Estrategia nutricional pre-combate:</strong> La comida de las 13:30 aporta ~450 kcal con proteína magra e hidratos de fácil vaciado gástrico (arroz/patata/pasta) y baja grasa para que entres a las 16:00 ligero y con glucógeno disponible.
+        </p>
+        <div class="stat-card" style="margin-bottom:10px;">
+          <div class="label">Recompensa por sesión completada</div>
+          <div class="val">+100 XP & Pose de Combate</div>
+          <div class="sub">Al marcar Boxeo en el Tablón de Inicio o aquí abajo.</div>
+        </div>
+        <button class="rpg-btn gold" style="width:100%;" onclick="toggleQuest('boxing')">🥊 Marcar / Desmarcar Sesión de Boxeo de Hoy</button>
+      </div>
+
+      <div class="rpg-box">
+        <div class="rpg-header">
+          <span class="pixel-title">🏋️ TEMPLO DE FUERZA (2 SESIONES / SEMANA)</span>
+        </div>
+        <p style="font-size:0.84rem; margin-bottom:10px;">
+          <strong>Principio clave:</strong> El entrenamiento de fuerza es el estímulo principal para retener masa muscular mientras bajas de 107,5 kg a 90 kg. Prioriza mantener cargas y técnica sin acumular fatiga articular excesiva.
+        </p>
+        <div class="stat-card" style="margin-bottom:10px;">
+          <div class="label">Recompensa por sesión completada</div>
+          <div class="val">+100 XP & Bonificación de Fuerza</div>
+          <div class="sub">Toma la merienda de las 17:30 antes o después según horario.</div>
+        </div>
+        <button class="rpg-btn gold" style="width:100%;" onclick="toggleQuest('strength')">🏋️ Marcar / Desmarcar Sesión de Fuerza de Hoy</button>
+      </div>
+    </div>
+
+    <!-- Bitácora de Entrenamientos -->
+    <div class="rpg-box">
+      <div class="rpg-header">
+        <span class="pixel-title">📓 BITÁCORA DE COMBATE Y CARGAS</span>
+      </div>
+      <div class="grid-3" style="margin-bottom:10px;">
+        <div>
+          <label>Tipo de Sesión:</label>
+          <select id="workoutTypeInput">
+            <option value="Boxeo (16:00)">🥊 Boxeo (Saco / Manoplas / Sparring)</option>
+            <option value="Fuerza Fullbody / Torso-Pierna">🏋️ Entrenamiento de Fuerza</option>
+          </select>
+        </div>
+        <div>
+          <label>Duración / Rondas / Ejercicios clave:</label>
+          <input type="text" id="workoutDetailsInput" placeholder="Ej. 8 asaltos saco + Press / Dominadas">
+        </div>
+        <div>
+          <label>Sensación (RPE 1-10):</label>
+          <input type="number" id="workoutRpeInput" min="1" max="10" value="8">
+        </div>
+      </div>
+      <button class="rpg-btn green" onclick="addWorkoutLog()">➕ Registrar en Bitácora</button>
+      <div style="overflow-x:auto; margin-top:12px;">
+        <table id="workoutLogTable"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       PESTAÑA 6: GRIMORIO, HECHIZOS, HITOS E INVENTARIO RPG
+       ========================================================= -->
+  <section id="tab-grimoire" class="tab-section">
+    <div class="grid-2">
+      <!-- Grimorio de Hechizos (Nivel 1 empieza sin hechizos desbloqueados) -->
+      <div class="rpg-box">
+        <div class="rpg-header">
+          <span class="pixel-title">🔮 GRIMORIO DE HECHIZOS (MAX LVL 10)</span>
+          <span style="font-size:0.75rem;">Partes a Nivel 1 sin hechizos</span>
+        </div>
+        <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:10px;">
+          Usa tu Maná (MP) para lanzar hechizos que revierten olvidos de pasos o protegen tu racha. <strong>Cuidado:</strong> Si tu HP cae a 0, perderás un nivel y tu último hechizo desbloqueado.
+        </p>
+        <div id="spellsContainer" class="quest-list"></div>
+      </div>
+
+      <!-- Inventario y Reliquias -->
+      <div class="rpg-box">
+        <div class="rpg-header">
+          <span class="pixel-title">🎒 MOCHILA DE BOTÍN Y RELIQUIAS EQUIPABLES</span>
+        </div>
+        <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:10px;">
+          Completa tareas e hitos para recibir pociones y equipamiento. Si mueres (0 HP), perderás objetos de tu inventario.
+        </p>
+        <div id="inventoryContainer" class="quest-list"></div>
+      </div>
+    </div>
+
+    <!-- Hitos Desbloqueables Manualmente por el Jugador -->
+    <div class="rpg-box">
+      <div class="rpg-header">
+        <span class="pixel-title">🏆 ALTAR DE HITOS Y RECOMPENSAS (PÚLSALOS AL LOGRARLOS)</span>
+      </div>
+      <div class="grid-2" id="milestonesContainer"></div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       PESTAÑA 7: HÁBITOS Y CIENCIA (10 PRINCIPIOS + CAUTELAS)
+       ========================================================= -->
+  <section id="tab-habits" class="tab-section">
+    <div class="rpg-box">
+      <div class="rpg-header">
+        <span class="pixel-title">📜 LOS 10 MANDAMIENTOS DEL GUERRERO (ESTILO DE VIDA)</span>
+      </div>
+      <div class="grid-2" id="lifestylePrinciplesContainer"></div>
+    </div>
+
+    <div class="rpg-box">
+      <div class="rpg-header">
+        <span class="pixel-title">🛡️ ESCUDO CONTRA MITOS (CAUTELAS CIENTÍFICAS)</span>
+      </div>
+      <div id="scientificCautionsContainer" class="quest-list"></div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       PESTAÑA 8: AJUSTES, SPRITE PERSONALIZADO Y BACKUPS
+       ========================================================= -->
+  <section id="tab-settings" class="tab-section">
+    <div class="grid-2">
+      <div class="rpg-box">
+        <div class="rpg-header">
+          <span class="pixel-title">⚙️ AJUSTES NUTRICIONALES Y FASE DE 14 DÍAS</span>
+        </div>
+        <div class="grid-2" style="margin-bottom:10px;">
+          <div><label>Calorías Diarias Objetivo:</label><input type="number" id="setKcal" value="2800"></div>
+          <div><label>Proteína Objetivo (g):</label><input type="number" id="setProt" value="165"></div>
+          <div><label>Carbohidratos Objetivo (g):</label><input type="number" id="setCarb" value="335"></div>
+          <div><label>Grasas Objetivo (g):</label><input type="number" id="setFat" value="89"></div>
+          <div><label>Peso Inicial (kg):</label><input type="number" step="0.1" id="setStartWeight" value="107.5"></div>
+          <div><label>Peso Objetivo (kg):</label><input type="number" step="0.1" id="setTargetWeight" value="90"></div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="rpg-btn gold" onclick="saveSettings()">💾 Guardar Objetivos</button>
+          <button class="rpg-btn" onclick="restart14DayTrial()">🔄 Reiniciar Fase de 14 Días</button>
+        </div>
+      </div>
+
+      <div class="rpg-box">
+        <div class="rpg-header">
+          <span class="pixel-title">🖼️ HOJA DE SPRITES Y COPIAS DE SEGURIDAD</span>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
+          El motor pixel-art ya dibuja a tu personaje automáticamente sin que tengas que hacer nada. Si además quieres cargar el archivo PNG original de tu hoja de sprites para alternarlo en alta resolución, súbelo aquí:
+        </p>
+        <input type="file" id="customSpriteUpload" accept="image/*" onchange="uploadCustomSpriteSheet(event)" style="margin-bottom:10px;">
+        <button class="rpg-btn" style="width:100%; margin-bottom:14px;" onclick="clearCustomSpriteSheet()">Usar Sprite Pixel-Art Nativo Integrado</button>
+
+        <hr style="border-color:#26334d; margin-bottom:12px;">
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="rpg-btn green" onclick="exportDataJSON()">📤 Exportar Partida Completa (JSON)</button>
+          <div>
+            <label>📥 Importar Partida (JSON):</label>
+            <input type="file" accept=".json" onchange="importDataJSON(event)">
+          </div>
+          <button class="rpg-btn" onclick="exportCheckinsCSV()">📊 Exportar Registros y Pesos (CSV)</button>
+          <button class="rpg-btn red" onclick="resetAllData()">⚠️ Borrar Todos los Datos (Reinicio a Nivel 1)</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- NAVEGACIÓN INFERIOR (MÓVIL) / LATERAL (ESCRITORIO) -->
+<nav class="nav-bar">
+  <button class="nav-btn active" onclick="switchTab('dashboard')" id="nav-dashboard"><span class="icon">🏰</span><span>Inicio</span></button>
+  <button class="nav-btn" onclick="switchTab('nutrition')" id="nav-nutrition"><span class="icon">🍖</span><span>Mi Menú</span></button>
+  <button class="nav-btn" onclick="switchTab('equivalences')" id="nav-equivalences"><span class="icon">⚖️</span><span>Equivalencias</span></button>
+  <button class="nav-btn" onclick="switchTab('progress')" id="nav-progress"><span class="icon">📈</span><span>Progreso</span></button>
+  <button class="nav-btn" onclick="switchTab('training')" id="nav-training"><span class="icon">🥊</span><span>Entreno</span></button>
+  <button class="nav-btn" onclick="switchTab('grimoire')" id="nav-grimoire"><span class="icon">🔮</span><span>Grimorio</span></button>
+  <button class="nav-btn" onclick="switchTab('habits')" id="nav-habits"><span class="icon">📜</span><span>Hábitos</span></button>
+  <button class="nav-btn" onclick="switchTab('settings')" id="nav-settings"><span class="icon">⚙️</span><span>Ajustes</span></button>
+</nav>
+
+<script>
+/* =========================================================================
+   1. ESTADO INICIAL Y ESTRUCTURA DE DATOS (LOCALSTORAGE + INDEXEDDB)
+   ========================================================================= */
+const STORAGE_KEY = 'PETER_FIT_RPG_V1';
+
+const DEFAULT_FOOD_DB = [
+  { id: 'brillante', name: 'Arroz Brillante en vasitos (cocido)', kcal: 159, prot: 3.1, carb: 33.0, fat: 1.4, unit: '1 vasito = 125g' },
+  { id: 'arroz_seco', name: 'Arroz seco (en crudo)', kcal: 349, prot: 7.0, carb: 78.0, fat: 0.9, unit: '1 taza café = 80g' },
+  { id: 'pasta', name: 'Pasta seca (en crudo)', kcal: 355, prot: 12.0, carb: 72.0, fat: 1.5, unit: '1 puñado doble = 80g' },
+  { id: 'patata', name: 'Patata cruda pelada', kcal: 77, prot: 2.0, carb: 17.0, fat: 0.1, unit: '1 mediana = 180g' },
+  { id: 'pan', name: 'Pan / Bagel', kcal: 265, prot: 9.0, carb: 51.0, fat: 2.5, unit: '1 bagel/mollete = 85g' },
+  { id: 'tortillas', name: 'Tortillas mexicanas de 40 g', kcal: 295, prot: 7.8, carb: 50.0, fat: 6.5, unit: '1 tortilla = 40g' },
+  { id: 'boniato', name: 'Boniato crudo', kcal: 86, prot: 1.6, carb: 20.0, fat: 0.1, unit: '1 mediano = 200g' },
+  { id: 'cuscus', name: 'Cuscús seco (en crudo)', kcal: 360, prot: 12.5, carb: 73.0, fat: 1.5, unit: '1 vaso = 100g' },
+  { id: 'crema_arroz', name: 'Crema de arroz', kcal: 360, prot: 7.5, carb: 80.0, fat: 1.0, unit: '1 cazo colmado = 40g' }
+];
+
+const INITIAL_SPELLS = [
+  { id: 'paso_etereo', name: 'Paso Etéreo', reqLevel: 3, mpCost: 20, desc: 'Revierte no haber alcanzado los pasos del día, sumando 8.000 pasos mágicos y protegiendo tu HP.' },
+  { id: 'guardia_alta', name: 'Escudo de Guardia Alta', reqLevel: 5, mpCost: 25, desc: 'Inmunidad total a la pérdida de HP al cambio de día (00:01) aunque no hayas podido pulsar tareas.' },
+  { id: 'alquimia_calorica', name: 'Alquimia del Fogón', reqLevel: 8, mpCost: 30, desc: 'Equilibra una comida social (85/15), marcando el menú del día como cumplido y otorgando +50 XP.' },
+  { id: 'segundo_aliento', name: 'Segundo Aliento del Púgil', reqLevel: 10, mpCost: 35, desc: 'Restaura +60 HP de inmediato y otorga inspiración combativa.' }
+];
+
+const INITIAL_MILESTONES = [
+  { id: 'm_3days', title: 'Tridente de Iniciación (3 Días cumplidos)', rewardText: '+120 XP & Vendas de Boxeo (+5% XP)', xp: 120, item: { id: 'vendas', name: 'Vendas de Boxeo Rúnicas', type: 'equip', bonusXp: 0.05, desc: '+5% XP en todas las tareas' } },
+  { id: 'm_box3', title: 'Semana en el Ring (3 Sesiones de Boxeo)', rewardText: '+180 XP & Guantes de 16oz (+10% XP)', xp: 180, item: { id: 'guantes', name: 'Guantes de 16oz de Campeón', type: 'equip', bonusXp: 0.10, desc: '+10% XP en todas las tareas' } },
+  { id: 'm_7days', title: 'Bastión de Acero (7 Días de Fase Inicial)', rewardText: '+250 XP & Poción Mayor de Vida', xp: 250, item: { id: 'pocion_hp', name: 'Poción de Suero Vital', type: 'consumable', effect: 'hp', val: 50, desc: 'Recupera +50 HP al usarla' } },
+  { id: 'm_weight2kg', title: 'Primer Corte (-2 kg en media semanal)', rewardText: '+300 XP & Botas de Caminante (+15% XP)', xp: 300, item: { id: 'botas', name: 'Botas de las 20.000 Leguas', type: 'equip', bonusXp: 0.15, desc: '+15% XP en todas las tareas' } },
+  { id: 'm_14days', title: 'Conquistador de los 14 Días (Fase Completa)', rewardText: '+500 XP & Cinturón Dorado (+20% XP)', xp: 500, item: { id: 'cinturon', name: 'Cinturón Dorado de la Vega', type: 'equip', bonusXp: 0.20, desc: '+20% XP en todas las tareas' } }
+];
+
+const DAILY_QUESTS_DEF = [
+  { id: 'menu', title: '🍖 Cumplir el Menú del Día (~2.800 kcal / 165g P)', xp: 75, pose: 'idle', mpBonus: 15 },
+  { id: 'boxing', title: '🥊 Completar Sesión de Boxeo (16:00)', xp: 100, pose: 'box', mpBonus: 0 },
+  { id: 'strength', title: '🏋️ Completar Sesión de Fuerza', xp: 100, pose: 'box', mpBonus: 0 },
+  { id: 'weight', title: '⚖️ Registrar Peso en la Báscula', xp: 40, pose: 'map', mpBonus: 0 },
+  { id: 'mealprep', title: '🍱 Preparar Comida para el Día Siguiente (Fiambreras)', xp: 50, pose: 'fire', mpBonus: 5 },
+  { id: 'teeth', title: '🪥 Lavarse los Dientes (Higiene & Cierre Nocturno)', xp: 30, pose: 'idle', mpBonus: 0 },
+  { id: 'water', title: '💧 Beber 3 Litros de Agua durante el Día', xp: 45, pose: 'run', mpBonus: 5 }
+];
+
+function getTodayISO() {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60000;
+  return new Date(now - offset).toISOString().split('T')[0];
+}
+
+function getDefaultState() {
+  const today = getTodayISO();
+  return {
+    hero: {
+      level: 1,
+      xp: 0,
+      hp: 100,
+      maxHp: 100,
+      mp: 50,
+      maxMp: 50,
+      pose: 'idle',
+      shieldActive: false,
+      equippedItem: null,
+      lostSpells: [],
+      inventory: [
+        { uid: 'init_1', id: 'cafe_eter', name: 'Éter de Café Matutino (06:30)', type: 'consumable', effect: 'mp', val: 20, desc: 'Restaura +20 MP' }
+      ],
+      claimedMilestones: []
+    },
+    settings: {
+      targetKcal: 2800,
+      targetProt: 165,
+      targetCarb: 335,
+      targetFat: 89,
+      startWeight: 107.5,
+      targetWeight: 90.0,
+      trialStartDate: today,
+      soundEnabled: true
+    },
+    dailyProgress: {
+      [today]: {
+        stepsTier: 0,
+        stepsXpClaimed: 0,
+        quests: { menu: false, boxing: false, strength: false, weight: false, mealprep: false, teeth: false, water: false }
+      }
+    },
+    lastActiveDate: today,
+    menuChoices: {
+      dayIndex: 1,
+      breakfastType: 'salado',
+      lunchCarb: 'brillante',
+      dinnerCarb: 'tortillas_patata'
+    },
+    foodDB: JSON.parse(JSON.stringify(DEFAULT_FOOD_DB)),
+    weights: [
+      { date: today, weight: 107.5 }
+    ],
+    waists: [],
+    checkins: {},
+    workouts: []
+  };
+}
+
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return getDefaultState();
+    const parsed = JSON.parse(raw);
+    return Object.assign(getDefaultState(), parsed);
+  } catch (e) {
+    return getDefaultState();
+  }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function ensureTodayProgress() {
+  const today = getTodayISO();
+  if (!state.dailyProgress[today]) {
+    state.dailyProgress[today] = {
+      stepsTier: 0,
+      stepsXpClaimed: 0,
+      quests: { menu: false, boxing: false, strength: false, weight: false, mealprep: false, teeth: false, water: false }
+    };
+  }
+}
+
+/* =========================================================================
+   2. EFECTOS DE SONIDO RETRO 16-BIT (WEB AUDIO API SIN ARCHIVOS EXTERNOS)
+   ========================================================================= */
+let audioCtx = null;
+function playSFX(type) {
+  if (!state.settings.soundEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'xp') {
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(523.25, now); // C5
+      osc.frequency.setValueAtTime(659.25, now + 0.07); // E5
+      osc.frequency.setValueAtTime(783.99, now + 0.14); // G5
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now); osc.stop(now + 0.28);
+    } else if (type === 'levelup') {
+      osc.type = 'triangle';
+      const notes = [440, 554.37, 659.25, 880];
+      notes.forEach((f, idx) => osc.frequency.setValueAtTime(f, now + idx * 0.09));
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      osc.start(now); osc.stop(now + 0.5);
+    } else if (type === 'damage') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(160, now);
+      osc.frequency.linearRampToValueAtTime(65, now + 0.3);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+      osc.start(now); osc.stop(now + 0.32);
+    } else if (type === 'spell') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(960, now + 0.25);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now); osc.stop(now + 0.28);
+    }
+  } catch (e) {}
+}
+
+function toggleSound() {
+  state.settings.soundEnabled = !state.settings.soundEnabled;
+  document.getElementById('soundBtn').textContent = state.settings.soundEnabled ? '🔊 SFX' : '🔇 MUTE';
+  saveState();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = msg;
+  t.style.display = 'block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3400);
+}
+
+/* =========================================================================
+   3. MOTOR PIXEL-ART DEL PERSONAJE (RECREACIÓN FIEL DE TU HOJA DE SPRITES)
+   ========================================================================= */
+let spriteFrame = 0;
+let customSpriteImg = null;
+
+function drawPixelHero() {
+  const canvas = document.getElementById('heroCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 64, 64);
+
+  // Si el usuario subió su archivo opcionalmente y está cargado
+  if (customSpriteImg) {
+    // Recorta el retrato principal de la hoja de sprites (esquina superior izquierda)
+    ctx.drawImage(customSpriteImg, 25, 40, 290, 325, 0, 0, 64, 64);
+    return;
+  }
+
+  const pose = state.hero.hp <= 0 ? 'ko' : (state.hero.pose || 'idle');
+  const bob = (spriteFrame % 2 === 0) ? 0 : 1;
+
+  // Paleta fiel al sprite adjunto: pelo castaño, rapado lateral, barba, camiseta blanca, tatuajes en brazos, vaqueros azules, botas marrones
+  const C = {
+    hair: '#5c3820',
+    shave: '#9c7254',
+    skin: '#e8a87c',
+    skinShadow: '#c68256',
+    beard: '#4a2e1b',
+    shirt: '#e5e5e5',
+    shirtShadow: '#b8b8b8',
+    tattoo: '#37474f',
+    jeans: '#1e40af',
+    jeansDark: '#172554',
+    boots: '#5c3a21',
+    gold: '#facc15',
+    fire1: '#f97316',
+    fire2: '#facc15'
+  };
+
+  function px(x, y, w, h, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x * 2, y * 2, w * 2, h * 2);
+  }
+
+  if (pose === 'ko') {
+    // Personaje tumbado K.O. en el suelo
+    px(4, 22, 24, 6, 'rgba(0,0,0,0.4)');
+    px(6, 18, 8, 7, C.skin); // cabeza tumbada
+    px(5, 18, 3, 7, C.hair);
+    px(10, 19, 3, 5, C.beard);
+    px(14, 19, 8, 6, C.shirt); // torso
+    px(22, 19, 6, 6, C.jeans); // piernas
+    px(27, 19, 2, 6, C.boots);
+    // Estrellitas de K.O.
+    if (spriteFrame % 2 === 0) {
+      px(8, 13, 2, 2, C.gold);
+      px(14, 12, 2, 2, '#ef4444');
+    } else {
+      px(11, 12, 2, 2, C.gold);
+      px(6, 14, 2, 2, '#ef4444');
+    }
+    return;
+  }
+
+  // Sombra base en el suelo
+  px(9, 28, 14, 2, 'rgba(0,0,0,0.45)');
+
+  // CABEZA (Rapado en los lados, tupé arriba, barba cerrada y pendiente en oreja)
+  const hy = 4 + bob;
+  px(11, hy, 10, 2, C.hair); // Tupé superior
+  px(10, hy + 2, 12, 2, C.shave); // Degradado lateral
+  px(11, hy + 2, 10, 7, C.skin); // Rostro
+  px(10, hy + 4, 1, 3, C.skinShadow); // Oreja izq
+  px(21, hy + 4, 1, 3, C.skinShadow); // Oreja der
+  px(21, hy + 6, 1, 1, C.gold); // Pendiente aro
+  // Ojos y cejas
+  px(12, hy + 3, 3, 1, C.hair);
+  px(17, hy + 3, 3, 1, C.hair);
+  px(13, hy + 4, 1, 2, '#111');
+  px(18, hy + 4, 1, 2, '#111');
+  // Barba
+  px(11, hy + 6, 10, 3, C.beard);
+  px(13, hy + 6, 6, 1, C.skinShadow);
+  px(14, hy + 7, 4, 1, C.skin); // Boca
+
+  if (pose === 'box') {
+    // Pose lanzando un directo de boxeo con estela blanca
+    px(11, 13 + bob, 10, 7, C.shirt);
+    px(9, 14 + bob, 3, 4, C.skin); // Brazo guardia
+    px(9, 15 + bob, 2, 2, C.tattoo);
+    // Brazo derecho extendido golpeando + onda de choque
+    const reach = (spriteFrame % 2 === 0) ? 4 : 0;
+    px(21, 14 + bob, 4 + reach, 3, C.skin);
+    px(22, 15 + bob, 2, 1, C.tattoo);
+    px(24 + reach, 13 + bob, 3, 4, '#dc2626'); // Guante/Puño
+    if (reach > 0) {
+      px(28, 10, 1, 11, '#ffffff');
+      px(29, 12, 1, 7, '#93c5fd');
+    }
+    // Piernas en guardia
+    px(11, 20, 4, 6, C.jeans);
+    px(17, 20, 4, 6, C.jeans);
+    px(10, 26, 5, 2, C.boots);
+    px(17, 26, 5, 2, C.boots);
+
+  } else if (pose === 'fire') {
+    // Sentado frente a la hoguera descansando (recuperando MP)
+    px(11, 13, 10, 7, C.shirt);
+    px(9, 14, 2, 5, C.skin);
+    px(9, 16, 2, 2, C.tattoo);
+    px(21, 14, 2, 5, C.skin);
+    px(21, 16, 2, 2, C.tattoo);
+    px(11, 20, 10, 4, C.jeans);
+    px(11, 24, 4, 3, C.boots);
+    px(17, 24, 4, 3, C.boots);
+    // Hoguera animada delante
+    px(23, 25, 6, 2, '#78350f');
+    const fH = (spriteFrame % 2 === 0) ? 5 : 7;
+    px(24, 25 - fH, 4, fH, C.fire1);
+    px(25, 26 - fH, 2, fH - 1, C.fire2);
+
+  } else if (pose === 'map') {
+    // Leyendo el mapa de los 14 días
+    px(11, 13 + bob, 10, 7, C.shirt);
+    px(9, 14 + bob, 2, 5, C.skin);
+    px(21, 14 + bob, 2, 5, C.skin);
+    // Mapa desplegado en las manos
+    px(11, 14 + bob, 10, 6, '#fef08a');
+    px(13, 15 + bob, 6, 1, '#a16207');
+    px(13, 17 + bob, 5, 1, '#a16207');
+    px(11, 20, 4, 6, C.jeans);
+    px(17, 20, 4, 6, C.jeans);
+    px(11, 26, 4, 2, C.boots);
+    px(17, 26, 4, 2, C.boots);
+
+  } else if (pose === 'run') {
+    // Corriendo / haciendo los pasos diarios
+    const step = (spriteFrame % 2 === 0) ? -2 : 2;
+    px(11, 13 + bob, 10, 7, C.shirt);
+    px(9, 14 + bob, 2, 5, C.skin);
+    px(9, 16 + bob, 2, 2, C.tattoo);
+    px(21, 14 + bob, 2, 5, C.skin);
+    px(21, 16 + bob, 2, 2, C.tattoo);
+    px(11, 20, 4, 6 + (step > 0 ? -1 : 1), C.jeans);
+    px(17, 20, 4, 6 + (step > 0 ? 1 : -1), C.jeans);
+    px(11, 26 + (step > 0 ? -1 : 1), 4, 2, C.boots);
+    px(17, 26 + (step > 0 ? 1 : -1), 4, 2, C.boots);
+
+  } else {
+    // Pose Idle (De frente, camiseta blanca, tatuajes en antebrazos, vaqueros)
+    px(11, 13 + bob, 10, 7, C.shirt);
+    px(12, 18 + bob, 8, 2, C.shirtShadow);
+    // Brazos musculados con tatuajes pixelados
+    px(8, 13 + bob, 3, 6, C.skin);
+    px(8, 16 + bob, 3, 2, C.tattoo);
+    px(9, 15 + bob, 1, 1, C.tattoo);
+    px(21, 13 + bob, 3, 6, C.skin);
+    px(21, 16 + bob, 3, 2, C.tattoo);
+    px(22, 15 + bob, 1, 1, C.tattoo);
+    // Vaqueros y botas
+    px(11, 20, 10, 2, C.jeansDark);
+    px(11, 22, 4, 4, C.jeans);
+    px(17, 22, 4, 4, C.jeans);
+    px(11, 26, 4, 2, C.boots);
+    px(17, 26, 4, 2, C.boots);
+  }
+}
+
+function setHeroPose(pose) {
+  state.hero.pose = pose;
+  document.querySelectorAll('.pose-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('pose-' + pose);
+  if (btn) btn.classList.add('active');
+  drawPixelHero();
+  saveState();
+}
+
+setInterval(() => {
+  spriteFrame++;
+  drawPixelHero();
+}, 420);
+
+document.getElementById('heroCanvas').addEventListener('click', () => {
+  const poses = ['idle', 'box', 'run', 'fire', 'map'];
+  const next = poses[(poses.indexOf(state.hero.pose) + 1) % poses.length];
+  setHeroPose(next);
+  playSFX('xp');
+});
+
+/* =========================================================================
+   4. SISTEMA RPG: NIVELES (1 A 10+), XP, HP, MP, CASTIGO 00:01 Y MUERTE
+   ========================================================================= */
+function getXpNeededForLevel(lvl) {
+  return lvl * 250; // Nivel 1->2: 250 XP, Nivel 2->3: 500 XP...
+}
+
+function getEquipBonusMultiplier() {
+  if (!state.hero.equippedItem) return 1;
+  return 1 + (state.hero.equippedItem.bonusXp || 0);
+}
+
+function gainXP(baseAmount, reasonText) {
+  const mult = getEquipBonusMultiplier();
+  const finalAmount = Math.round(baseAmount * mult);
+  state.hero.xp += finalAmount;
+  playSFX('xp');
+
+  let leveledUp = false;
+  while (state.hero.level < 10 && state.hero.xp >= getXpNeededForLevel(state.hero.level)) {
+    state.hero.xp -= getXpNeededForLevel(state.hero.level);
+    state.hero.level++;
+    state.hero.maxHp = 100 + (state.hero.level - 1) * 15;
+    state.hero.maxMp = 50 + (state.hero.level - 1) * 10;
+    state.hero.hp = state.hero.maxHp;
+    state.hero.mp = state.hero.maxMp;
+    leveledUp = true;
+  }
+
+  if (leveledUp) {
+    playSFX('levelup');
+    showToast(`🎉 ¡SUBIDA DE NIVEL! Ahora eres NIVEL ${state.hero.level}. ¡HP y MP restaurados al 100% y revisa tu Grimorio!`);
+  } else if (reasonText) {
+    showToast(`✨ +${finalAmount} XP (${reasonText})`);
+  }
+
+  saveState();
+  renderAll();
+}
+
+function takeDamage(amount, reason) {
+  state.hero.hp = Math.max(0, state.hero.hp - amount);
+  playSFX('damage');
+
+  if (state.hero.hp === 0) {
+    handleHeroDeath();
+  } else {
+    showToast(`💔 -${amount} HP: ${reason}`);
+  }
+  saveState();
+  renderAll();
+}
+
+function handleHeroDeath() {
+  setHeroPose('ko');
+  let penalties = [];
+
+  // 1. Pierde un nivel (mínimo nivel 1)
+  if (state.hero.level > 1) {
+    state.hero.level--;
+    state.hero.xp = 0;
+    penalties.push(`Bajas a Nivel ${state.hero.level}`);
+  } else {
+    state.hero.xp = 0;
+    penalties.push(`Pierdes toda tu XP acumulada`);
+  }
+
+  // 2. Pierde objetos que tenía en el inventario y el equipado
+  if (state.hero.equippedItem || state.hero.inventory.length > 0) {
+    state.hero.equippedItem = null;
+    state.hero.inventory = [];
+    penalties.push(`Has perdido tus objetos e inventario`);
+  }
+
+  // 3. Pierde un hechizo si tenía alguno desbloqueado
+  const unlockedSpells = INITIAL_SPELLS.filter(s => s.reqLevel <= (state.hero.level + 1) && !state.hero.lostSpells.includes(s.id));
+  if (unlockedSpells.length > 0) {
+    const lost = unlockedSpells[unlockedSpells.length - 1];
+    state.hero.lostSpells.push(lost.id);
+    penalties.push(`Has olvidado el hechizo "${lost.name}"`);
+  }
+
+  // Revive con 50% de vida tras la penalización
+  state.hero.maxHp = 100 + (state.hero.level - 1) * 15;
+  state.hero.hp = Math.round(state.hero.maxHp * 0.5);
+
+  alert(`💀 ¡HAS CAÍDO EN COMBATE (0 HP)!\n\nPenalizaciones aplicadas:\n- ${penalties.join('\n- ')}\n\nTe levantas de la lona con ${state.hero.hp} HP. ¡Retoma tus hábitos hoy!`);
+}
+
+// Comprobación automática al pasar las 00:01 (cambio de fecha real o simulado)
+function checkMidnightTransition() {
+  const today = getTodayISO();
+  if (state.lastActiveDate && state.lastActiveDate !== today) {
+    const prevLog = state.dailyProgress[state.lastActiveDate];
+    evaluateEndOfDayLog(prevLog, state.lastActiveDate);
+    state.lastActiveDate = today;
+    ensureTodayProgress();
+    saveState();
+  }
+}
+
+function evaluateEndOfDayLog(dayLog, dateLabel) {
+  if (!dayLog) return;
+  const anyQuestDone = Object.values(dayLog.quests || {}).some(v => v === true);
+  const anyStepsDone = (dayLog.stepsTier || 0) > 0;
+
+  if (!anyQuestDone && !anyStepsDone) {
+    if (state.hero.shieldActive) {
+      state.hero.shieldActive = false;
+      showToast(`🛡️ Tu Escudo de Guardia Alta absorbió el daño por inactividad del día ${dateLabel}.`);
+    } else {
+      takeDamage(50, `No pulsaste ninguna tarea ni rango de pasos durante el día ${dateLabel}.`);
+    }
+  } else {
+    // Recarga de MP al pasar el día si comió bien (cumplió menú) y durmió
+    let mpRecovered = 10;
+    if (dayLog.quests && dayLog.quests.menu) mpRecovered += 20;
+    const chk = state.checkins[dateLabel];
+    if (chk && Number(chk.sleep) >= 7) mpRecovered += 20;
+    state.hero.mp = Math.min(state.hero.maxMp, state.hero.mp + mpRecovered);
+    showToast(`🌅 Nuevo día iniciado. Has recargado +${mpRecovered} MP por descanso y nutrición.`);
+  }
+}
+
+function simulateMidnightProcess() {
+  const today = getTodayISO();
+  const todayLog = state.dailyProgress[today];
+  const anyQuestDone = Object.values(todayLog.quests || {}).some(v => v === true);
+  const anyStepsDone = (todayLog.stepsTier || 0) > 0;
+
+  if (!anyQuestDone && !anyStepsDone) {
+    if (!confirm('⚠️ ¡Atención! Hoy no has marcado NINGUNA tarea ni rango de pasos.\nSi cierras el día (00:01) sin haber pulsado nada, sufrirás -50 HP de penalización.\n¿Quieres ejecutar el cierre del día igualmente?')) {
+      return;
+    }
+  }
+  evaluateEndOfDayLog(todayLog, today);
+  saveState();
+  renderAll();
+}
+
+/* =========================================================================
+   5. MISIONES DIARIAS Y RANGOS DE PASOS (8k, 10k, 12k, 15k, 20k)
+   ========================================================================= */
+function selectStepsTier(stepsVal, xpReward) {
+  ensureTodayProgress();
+  const today = getTodayISO();
+  const prog = state.dailyProgress[today];
+
+  // Si ya había elegido otro rango hoy, ajustamos la diferencia de XP para no duplicar trampas
+  const prevXp = prog.stepsXpClaimed || 0;
+  const diffXp = xpReward - prevXp;
+
+  prog.stepsTier = stepsVal;
+  prog.stepsXpClaimed = xpReward;
+
+  // Actualiza también los pasos en el check-in de hoy
+  if (!state.checkins[today]) state.checkins[today] = {};
+  state.checkins[today].steps = stepsVal;
+
+  setHeroPose('run');
+
+  if (diffXp > 0) {
+    gainXP(diffXp, `Rango de ${stepsVal.toLocaleString('es-ES')} pasos`);
+  } else if (diffXp < 0) {
+    state.hero.xp = Math.max(0, state.hero.xp + diffXp);
+    showToast(`👣 Rango ajustado a ${stepsVal.toLocaleString('es-ES')} pasos.`);
+  }
+
+  saveState();
+  renderAll();
+}
+
+function toggleQuest(questId) {
+  ensureTodayProgress();
+  const today = getTodayISO();
+  const prog = state.dailyProgress[today];
+  const qDef = DAILY_QUESTS_DEF.find(q => q.id === questId);
+  if (!qDef) return;
+
+  const isNowDone = !prog.quests[questId];
+  prog.quests[questId] = isNowDone;
+
+  if (isNowDone) {
+    setHeroPose(qDef.pose);
+    if (qDef.mpBonus > 0) {
+      state.hero.mp = Math.min(state.hero.maxMp, state.hero.mp + qDef.mpBonus);
+    }
+    gainXP(qDef.xp, qDef.title);
+  } else {
+    const mult = getEquipBonusMultiplier();
+    state.hero.xp = Math.max(0, state.hero.xp - Math.round(qDef.xp * mult));
+    showToast(`↩️ Tarea desmarcada: ${qDef.title}`);
+  }
+
+  // Sincroniza con el check-in si es boxeo o fuerza
+  if (!state.checkins[today]) state.checkins[today] = {};
+  if (questId === 'boxing') state.checkins[today].boxing = isNowDone;
+  if (questId === 'strength') state.checkins[today].strength = isNowDone;
+
+  saveState();
+  renderAll();
+}
+
+/* =========================================================================
+   6. PLANIFICADOR DE MENÚ DE 14 DÍAS Y RECETAS REALES CUADRADAS A 2.800 KCAL
+   ========================================================================= */
+function getComputedMealsForCurrentSelection() {
+  const bType = state.menuChoices.breakfastType || 'salado';
+  const lSwap = state.menuChoices.lunchCarb || 'brillante';
+  const dSwap = state.menuChoices.dinnerCarb || 'tortillas_patata';
+
+  // 1. CAFÉ (06:30) -> ~50 kcal
+  const coffeeMeal = {
+    id: 'coffee',
+    time: '06:30',
+    name: 'Café de Despertar Matutino',
+    targetKcal: 50,
+    prepMin: 2,
+    notes: 'Hidratación inicial al levantarse antes de ir al instituto/trabajo.',
+    ingredients: [
+      { name: 'Café expreso doble o americano', grams: 150, visual: '1 taza grande', kcal: 4, prot: 0.3, carb: 0.5, fat: 0 },
+      { name: 'Leche semidesnatada', grams: 100, visual: '1/2 vaso (chorrito generoso)', kcal: 46, prot: 3.3, carb: 4.8, fat: 1.6 }
+    ],
+    instructions: [
+      'Preparar el café recién hecho a las 06:30.',
+      'Añadir los 100 g (ml) de leche semidesnatada fría o templada.'
+    ]
+  };
+
+  // 2. DESAYUNO-ALMUERZO (09:30-11:00) -> ~850 kcal (2 opciones transportables)
+  let breakfastMeal;
+  if (bType === 'salado') {
+    breakfastMeal = {
+      id: 'breakfast',
+      time: '09:30 - 11:00',
+      name: 'Opción Salada: Bocadillo/Bagel Doble de Pavo, Huevos y AOVE + Plátano',
+      targetKcal: 850,
+      prepMin: 8,
+      notes: 'Transportable en papel aluminio o fiambrera. Se puede dejar montado la noche anterior.',
+      ingredients: [
+        { name: 'Pan de mollete grande o 2 Bagels', grams: 150, visual: '2 bagels o 1 barra mediana (150 g)', kcal: 398, prot: 13.5, carb: 76.5, fat: 3.8 },
+        { name: 'Fiambre de pechuga de pavo extra', grams: 120, visual: '6 lonchas gruesas', kcal: 126, prot: 25.0, carb: 2.4, fat: 1.8 },
+        { name: 'Huevos enteros cocidos o a la plancha', grams: 120, visual: '2 huevos L enteros', kcal: 172, prot: 15.0, carb: 0.8, fat: 12.0 },
+        { name: 'Aceite de oliva virgen extra (AOVE)', grams: 8, visual: '1 cucharada de postre medida', kcal: 72, prot: 0, carb: 0, fat: 8.0 },
+        { name: 'Fruta: Plátano maduro', grams: 100, visual: '1 unidad mediana pelada', kcal: 89, prot: 1.1, carb: 21.0, fat: 0.3 }
+      ],
+      instructions: [
+        'Tostar ligeramente los 150 g de pan o bagels.',
+        'Rociar exactamente 8 g de aceite de oliva virgen extra sobre la miga.',
+        'Colocar las 6 lonchas de fiambre de pavo (120 g) y los 2 huevos enteros (120 g, cocidos o revueltos).',
+        'Envolver para llevar al trabajo y acompañar con 1 plátano mediano.'
+      ]
+    };
+  } else {
+    breakfastMeal = {
+      id: 'breakfast',
+      time: '09:30 - 11:00',
+      name: 'Opción Dulce: Tupper Nocturno de Avena/Crema de Arroz, Skyr, Whey y Nueces',
+      targetKcal: 850,
+      prepMin: 5,
+      notes: 'Ideal para dejar preparado en un bote hermético en la nevera la noche anterior.',
+      ingredients: [
+        { name: 'Copos de avena o Crema de arroz (en seco)', grams: 100, visual: '1 vaso lleno (100 g en seco)', kcal: 365, prot: 11.0, carb: 66.0, fat: 6.0 },
+        { name: 'Proteína de suero (Whey) o Caseína', grams: 35, visual: '1 cazo colmado', kcal: 135, prot: 27.0, carb: 2.5, fat: 1.8 },
+        { name: 'Yogur griego light o Skyr natural', grams: 150, visual: '1 envase individual y cuarto', kcal: 95, prot: 15.0, carb: 6.0, fat: 0.5 },
+        { name: 'Frutos secos (Nueces o Almendras naturales)', grams: 25, visual: '1 puñado cerrado (18-20 almendras)', kcal: 155, prot: 4.5, carb: 3.0, fat: 14.0 },
+        { name: 'Fruta: Manzana o Arándanos/Plátano', grams: 160, visual: '1 pieza mediana troceada', kcal: 96, prot: 0.6, carb: 22.5, fat: 0.3 }
+      ],
+      instructions: [
+        'Mezclar en un tupper los 100 g de avena/crema de arroz con el cazo de proteína (35 g) y los 150 g de Skyr/yogur griego light (añadir 100 ml de agua si usas avena).',
+        'Dejar reposar en nevera toda la noche para que hidrate.',
+        'Por la mañana, añadir la fruta troceada (160 g) y los 25 g de frutos secos.'
+      ]
+    };
+  }
+
+  // 3. COMIDA PRE-BOXEO (13:30-14:00) -> ~450 kcal (Baja en grasa, rápida digestión)
+  const lunchCarbOptions = {
+    brillante: { name: 'Arroz Brillante en vasitos', grams: 160, visual: '1 vasito entero + 1/4 de vasito', kcal: 254, prot: 5.0, carb: 52.8, fat: 2.2 },
+    arroz_seco: { name: 'Arroz blanco seco (peso en crudo)', grams: 72, visual: '3/4 de taza de café en crudo', kcal: 251, prot: 5.0, carb: 56.1, fat: 0.6 },
+    pasta: { name: 'Pasta seca (peso en crudo)', grams: 72, visual: '1 puñado grande en crudo', kcal: 255, prot: 8.6, carb: 51.8, fat: 1.1 },
+    patata: { name: 'Patata cruda pelada (hervida/vapor)', grams: 330, visual: '2 patatas medianas', kcal: 254, prot: 6.6, carb: 56.1, fat: 0.3 },
+    crema_arroz: { name: 'Crema de arroz instantánea', grams: 70, visual: '2 cazos rasos', kcal: 252, prot: 5.2, carb: 56.0, fat: 0.7 }
+  };
+  const chosenLunchCarb = lunchCarbOptions[lSwap] || lunchCarbOptions.brillante;
+
+  const lunchMeal = {
+    id: 'lunch',
+    time: '13:30 - 14:00',
+    name: 'Fiambrera Pre-Boxeo: Pechuga de Pollo Magra + ' + chosenLunchCarb.name,
+    targetKcal: 450,
+    prepMin: 12,
+    notes: 'Comida diseñada con grasa muy controlada (<7 g) y sin legumbres para tener el estómago ligero en el boxeo de las 16:00.',
+    ingredients: [
+      { name: 'Pechuga de pollo cruda sin piel', grams: 145, visual: '1 filete grueso y medio en crudo', kcal: 160, prot: 33.0, carb: 0, fat: 2.2 },
+      chosenLunchCarb,
+      { name: 'Calabacín o judías verdes al vapor (baja fibra insoluble)', grams: 100, visual: '1 guarnición ligera', kcal: 22, prot: 1.2, carb: 3.8, fat: 0.2 },
+      { name: 'Aceite de oliva virgen extra (AOVE)', grams: 2, visual: 'Pincelada en sartén antiadherente', kcal: 18, prot: 0, carb: 0, fat: 2.0 }
+    ],
+    instructions: [
+      'Pesar 145 g de pechuga de pollo en crudo y cocinar a la plancha con apenas 2 g de AOVE, sal, ajo en polvo y limón.',
+      'Preparar la fuente de carbohidrato elegida (' + chosenLunchCarb.grams + ' g de ' + chosenLunchCarb.name + ').',
+      'Servir en fiambrera junto a los 100 g de verdura suave cocinada.'
+    ]
+  };
+
+  // 4. MERIENDA POST-BOXEO / PRE-FUERZA (17:30-18:00) -> ~400 kcal (<5 min)
+  const snackMeal = {
+    id: 'snack',
+    time: '17:30 - 18:00',
+    name: 'Recuperador Exprés (<5 min): Papilla de Crema de Arroz + Whey + Fruta',
+    targetKcal: 400,
+    prepMin: 3,
+    notes: 'Recarga rápida de glucógeno tras el boxeo de las 16:00 y combustible limpio antes de levantar pesas.',
+    ingredients: [
+      { name: 'Crema de arroz', grams: 50, visual: '1 cazo y medio (50 g)', kcal: 180, prot: 3.8, carb: 40.0, fat: 0.5 },
+      { name: 'Proteína de suero (Whey) o Caseína', grams: 35, visual: '1 cazo colmado', kcal: 135, prot: 27.0, carb: 2.5, fat: 1.8 },
+      { name: 'Plátano o Manzana / Pera', grams: 100, visual: '1 pieza mediana', kcal: 85, prot: 1.0, carb: 20.0, fat: 0.2 }
+    ],
+    instructions: [
+      'Disolver los 50 g de crema de arroz en agua caliente o leche templada removiendo 30 segundos.',
+      'Añadir los 35 g de proteína de suero y mezclar hasta textura de natillas.',
+      'Acompañar con la pieza de fruta troceada por encima.'
+    ]
+  };
+
+  // 5. CENA ABUNDANTE CON POSTRE (20:00) -> ~1.050 kcal
+  const dinnerCarbOptions = {
+    tortillas_patata: { name: '3 Tortillas mexicanas (120g) + Patata al horno (250g cruda)', grams: 370, visual: '3 tortillas de 40g + 1 patata grande', kcal: 546, prot: 14.3, carb: 102.5, fat: 8.0 },
+    arroz_seco: { name: 'Arroz seco en crudo (para arroz al horno/sartén)', grams: 135, visual: '1 vaso mediano en crudo', kcal: 471, prot: 9.5, carb: 105.3, fat: 1.2 },
+    pasta: { name: 'Pasta seca en crudo', grams: 140, visual: '1 plato hondo abundante (peso en crudo)', kcal: 497, prot: 16.8, carb: 100.8, fat: 2.1 },
+    patata_pura: { name: 'Patata cruda pelada (asada o en gajos)', grams: 620, visual: '3 patatas grandes en crudo', kcal: 477, prot: 12.4, carb: 105.4, fat: 0.6 },
+    pan_boniato: { name: 'Pan rústico (90g) + Boniato asado (300g crudo)', grams: 390, visual: '3 rebanadas pan + 1 boniato grande', kcal: 496, prot: 12.9, carb: 105.9, fat: 2.5 }
+  };
+  const chosenDinnerCarb = dinnerCarbOptions[dSwap] || dinnerCarbOptions.tortillas_patata;
+
+  const dinnerMeal = {
+    id: 'dinner',
+    time: '20:00',
+    name: 'Banquete Nocturno: Contramuslo/Ternera Magra + ' + chosenDinnerCarb.name + ' + Postre Skyr',
+    targetKcal: 1050,
+    prepMin: 20,
+    notes: 'La comida más abundante y saciante del día para dormir sin hambre y recuperar el sistema nervioso.',
+    ingredients: [
+      { name: 'Contramuslo de pollo deshuesado sin piel o Ternera magra (en crudo)', grams: 200, visual: '2 contramuslos grandes o 1 filete grande de ternera', kcal: 245, prot: 41.0, carb: 0, fat: 8.5 },
+      chosenDinnerCarb,
+      { name: 'Verduras salteadas (pimiento, cebolla, calabacín, champiñón)', grams: 250, visual: '2 tazas abundantes', kcal: 65, prot: 3.0, carb: 11.5, fat: 0.5 },
+      { name: 'Aguacate natural o Aceite de oliva virgen extra', grams: 18, visual: '18 g de AOVE (1 cucharada sopera y media)', kcal: 162, prot: 0, carb: 0, fat: 18.0 },
+      { name: 'Postre: Skyr o Yogur griego light con canela', grams: 150, visual: '1 tarrina individual grande', kcal: 95, prot: 15.0, carb: 6.0, fat: 0.5 }
+    ],
+    instructions: [
+      'Saltear los 200 g de carne pesada en crudo (contramuslo sin piel en tiras o ternera magra) junto con los 250 g de verduras usando los 18 g medidos de AOVE.',
+      'Servir acompañado de la ración completa de carbohidratos seleccionada (' + chosenDinnerCarb.visual + ').',
+      'Tomar de postre los 150 g de Skyr o yogur griego light frío.'
+    ]
+  };
+
+  const meals = [coffeeMeal, breakfastMeal, lunchMeal, snackMeal, dinnerMeal];
+
+  // Calcular totales sumando exactamente cada ingrediente (regla crítica del JSON)
+  meals.forEach(m => {
+    m.totalKcal = Math.round(m.ingredients.reduce((acc, i) => acc + i.kcal, 0));
+    m.totalProt = Math.round(m.ingredients.reduce((acc, i) => acc + i.prot, 0));
+    m.totalCarb = Math.round(m.ingredients.reduce((acc, i) => acc + i.carb, 0));
+    m.totalFat  = Math.round(m.ingredients.reduce((acc, i) => acc + i.fat, 0));
+  });
+
+  const dayTotals = {
+    kcal: meals.reduce((a, m) => a + m.totalKcal, 0),
+    prot: meals.reduce((a, m) => a + m.totalProt, 0),
+    carb: meals.reduce((a, m) => a + m.totalCarb, 0),
+    fat:  meals.reduce((a, m) => a + m.totalFat, 0)
+  };
+
+  return { meals, dayTotals };
+}
+
+function saveMenuChoice() {
+  state.menuChoices.dayIndex = Number(document.getElementById('menuDaySelect').value) || 1;
+  state.menuChoices.breakfastType = document.getElementById('breakfastTypeSelect').value;
+  state.menuChoices.lunchCarb = document.getElementById('lunchCarbSwapSelect').value;
+  state.menuChoices.dinnerCarb = document.getElementById('dinnerCarbSwapSelect').value;
+  saveState();
+  renderMenuDay();
+}
+
+function renderMenuDay() {
+  const selectDay = document.getElementById('menuDaySelect');
+  if (selectDay.options.length === 0) {
+    for (let d = 1; d <= 14; d++) {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = `Día ${d} de 14 — Plan de Adherencia Sin Fricción`;
+      selectDay.appendChild(opt);
+    }
+  }
+  selectDay.value = state.menuChoices.dayIndex || 1;
+  document.getElementById('breakfastTypeSelect').value = state.menuChoices.breakfastType || 'salado';
+  document.getElementById('lunchCarbSwapSelect').value = state.menuChoices.lunchCarb || 'brillante';
+  document.getElementById('dinnerCarbSwapSelect').value = state.menuChoices.dinnerCarb || 'tortillas_patata';
+
+  const { meals, dayTotals } = getComputedMealsForCurrentSelection();
+  const s = state.settings;
+  const diffKcal = dayTotals.kcal - s.targetKcal;
+  const diffSign = diffKcal >= 0 ? `+${diffKcal}` : `${diffKcal}`;
+
+  document.getElementById('menuTotalsBanner').innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <div>
+        <div class="label">TOTAL DEL MENÚ CONFIGURADO (SUMA REAL DE INGREDIENTES)</div>
+        <div class="val">${dayTotals.kcal} kcal <span style="font-size:0.85rem; color:var(--text-muted);">(${diffSign} kcal vs objetivo ${s.targetKcal})</span></div>
+      </div>
+      <div style="display:flex; gap:10px; font-family:monospace; font-size:0.9rem;">
+        <span class="tag">🥩 Prot: ${dayTotals.prot}g / ${s.targetProt}g</span>
+        <span class="tag">🌾 HC: ${dayTotals.carb}g / ${s.targetCarb}g</span>
+        <span class="tag">🥑 Grasas: ${dayTotals.fat}g / ${s.targetFat}g</span>
+      </div>
+    </div>
+  `;
+
+  const container = document.getElementById('mealsDetailContainer');
+  container.innerHTML = meals.map(m => `
+    <div class="rpg-box" style="margin-bottom:12px;">
+      <div class="rpg-header">
+        <span class="pixel-title">⏰ ${m.time} · ${m.name}</span>
+        <span style="font-family:monospace; font-size:0.82rem;">${m.totalKcal} kcal (Obj: ${m.targetKcal})</span>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+        <span class="tag">Proteína: ${m.totalProt} g</span>
+        <span class="tag">Carbohidratos: ${m.totalCarb} g</span>
+        <span class="tag">Grasas: ${m.totalFat} g</span>
+        <span class="tag">⏱️ Prep: ${m.prepMin} min</span>
+      </div>
+      <ul class="recipe-ingredient-list">
+        ${m.ingredients.map(ing => `
+          <li>
+            <span><strong>${ing.name}</strong> — <span style="color:var(--gold-light);">${ing.grams} g</span> (${ing.visual})</span>
+            <span style="font-family:monospace; color:var(--text-muted);">${ing.kcal} kcal | ${ing.prot}P/${ing.carb}C/${ing.fat}G</span>
+          </li>
+        `).join('')}
+      </ul>
+      <div style="font-size:0.83rem; color:#cbd5e1; margin-top:8px;">
+        <strong>Preparación:</strong> ${m.instructions.join(' ')}
+      </div>
+      <div style="font-size:0.78rem; color:var(--gold-light); margin-top:4px;">
+        💡 <em>Nota meal-prep: ${m.notes}</em>
+      </div>
+    </div>
+  `).join('');
+}
+
+function applyMenuToTodayCheckin() {
+  const today = getTodayISO();
+  const { dayTotals } = getComputedMealsForCurrentSelection();
+  if (!state.checkins[today]) state.checkins[today] = {};
+  state.checkins[today].kcal = dayTotals.kcal;
+  state.checkins[today].prot = dayTotals.prot;
+  state.checkins[today].carb = dayTotals.carb;
+  state.checkins[today].fat  = dayTotals.fat;
+
+  ensureTodayProgress();
+  if (!state.dailyProgress[today].quests.menu) {
+    toggleQuest('menu');
+  } else {
+    saveState();
+    renderAll();
+    showToast('✅ Macros del menú volcados al registro de hoy.');
+  }
+}
+
+/* =========================================================================
+   7. CALCULADORA DE EQUIVALENCIAS DE CARBOHIDRATOS Y BASE EDITABLE
+   ========================================================================= */
+function renderEquivalencesTab() {
+  const sel = document.getElementById('eqSourceFood');
+  const currentVal = sel.value || state.foodDB[0].id;
+  sel.innerHTML = state.foodDB.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+  sel.value = currentVal;
+
+  calculateEquivalences();
+  renderFoodDbTable();
+}
+
+function calculateEquivalences() {
+  const sourceId = document.getElementById('eqSourceFood').value;
+  const grams = Math.max(1, Number(document.getElementById('eqSourceGrams').value) || 100);
+  const criterion = document.getElementById('eqCriterion').value;
+
+  const sourceFood = state.foodDB.find(f => f.id === sourceId) || state.foodDB[0];
+  const srcKcal = (sourceFood.kcal * grams) / 100;
+  const srcCarb = (sourceFood.carb * grams) / 100;
+  const srcProt = (sourceFood.prot * grams) / 100;
+  const srcFat  = (sourceFood.fat  * grams) / 100;
+
+  document.getElementById('eqSourceSummary').innerHTML = `
+    <div class="label">ALIMENTO BASE SELECCIONADO (${grams} g de ${sourceFood.name})</div>
+    <div class="val">${Math.round(srcKcal)} kcal · ${srcCarb.toFixed(1)} g Carbohidratos</div>
+    <div class="sub">Aporta además: ${srcProt.toFixed(1)} g Proteína | ${srcFat.toFixed(1)} g Grasa | Ref. visual: ${sourceFood.unit}</div>
+  `;
+
+  const resultsGrid = document.getElementById('eqResultsGrid');
+  resultsGrid.innerHTML = state.foodDB.filter(f => f.id !== sourceId).map(target => {
+    let eqGrams = 0;
+    if (criterion === 'carbs') {
+      eqGrams = (srcCarb / target.carb) * 100;
+    } else {
+      eqGrams = (srcKcal / target.kcal) * 100;
+    }
+    eqGrams = Math.round(eqGrams);
+    const tKcal = Math.round((target.kcal * eqGrams) / 100);
+    const tCarb = ((target.carb * eqGrams) / 100).toFixed(1);
+    const tProt = ((target.prot * eqGrams) / 100).toFixed(1);
+    const tFat  = ((target.fat  * eqGrams) / 100).toFixed(1);
+
+    return `
+      <div class="stat-card">
+        <div class="label">${target.name}</div>
+        <div class="val">${eqGrams} g</div>
+        <div class="sub">📏 ${target.unit}</div>
+        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px; font-family:monospace;">
+          ${tKcal} kcal | ${tCarb}g HC | ${tProt}g P | ${tFat}g G
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderFoodDbTable() {
+  const table = document.getElementById('foodDbTable');
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Alimento (por 100g)</th>
+        <th>Kcal</th>
+        <th>Prot (g)</th>
+        <th>HC (g)</th>
+        <th>Grasa (g)</th>
+        <th>Unidad Visual</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${state.foodDB.map((f, idx) => `
+        <tr>
+          <td><strong>${f.name}</strong></td>
+          <td><input type="number" step="1" value="${f.kcal}" onchange="updateFoodDbItem(${idx}, 'kcal', this.value)" style="width:72px; padding:4px;"></td>
+          <td><input type="number" step="0.1" value="${f.prot}" onchange="updateFoodDbItem(${idx}, 'prot', this.value)" style="width:65px; padding:4px;"></td>
+          <td><input type="number" step="0.1" value="${f.carb}" onchange="updateFoodDbItem(${idx}, 'carb', this.value)" style="width:65px; padding:4px;"></td>
+          <td><input type="number" step="0.1" value="${f.fat}" onchange="updateFoodDbItem(${idx}, 'fat', this.value)" style="width:65px; padding:4px;"></td>
+          <td><input type="text" value="${f.unit}" onchange="updateFoodDbItem(${idx}, 'unit', this.value)" style="min-width:130px; padding:4px;"></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  `;
+}
+
+function updateFoodDbItem(idx, field, val) {
+  if (field === 'unit') {
+    state.foodDB[idx][field] = val;
+  } else {
+    state.foodDB[idx][field] = Math.max(0.1, Number(val) || 0);
+  }
+  saveState();
+  calculateEquivalences();
+}
+
+function resetFoodDB() {
+  state.foodDB = JSON.parse(JSON.stringify(DEFAULT_FOOD_DB));
+  saveState();
+  renderEquivalencesTab();
+  showToast('📚 Base nutricional restaurada a valores originales.');
+}
+
+/* =========================================================================
+   8. SEGUIMIENTO DE PESO, MEDIA MÓVIL 7 DÍAS, GRÁFICO CANVAS Y CINTURA
+   ========================================================================= */
+function saveWeightEntry() {
+  const d = document.getElementById('weightDateInput').value || getTodayISO();
+  const w = parseFloat(document.getElementById('weightValInput').value);
+  if (!w || w < 40 || w > 250) {
+    alert('Introduce un peso válido en kg (ej. 106.8).');
+    return;
+  }
+
+  const existingIdx = state.weights.findIndex(x => x.date === d);
+  if (existingIdx >= 0) {
+    state.weights[existingIdx].weight = w;
+  } else {
+    state.weights.push({ date: d, weight: w });
+  }
+  state.weights.sort((a, b) => a.date.localeCompare(b.date));
+
+  // Si es de hoy, marca la misión de registrar peso
+  if (d === getTodayISO()) {
+    ensureTodayProgress();
+    if (!state.dailyProgress[d].quests.weight) {
+      toggleQuest('weight');
+      return;
+    }
+  }
+
+  saveState();
+  renderAll();
+  showToast(`⚖️ Peso registrado (${w} kg el ${d}).`);
+}
+
+function deleteWeightEntry(dateStr) {
+  if (!confirm(`¿Eliminar el pesaje del día ${dateStr}?`)) return;
+  state.weights = state.weights.filter(w => w.date !== dateStr);
+  saveState();
+  renderAll();
+}
+
+function getWeightMetrics() {
+  const sorted = [...state.weights].sort((a, b) => a.date.localeCompare(b.date));
+  const latest = sorted.length > 0 ? sorted[sorted.length - 1].weight : state.settings.startWeight;
+  const last7 = sorted.slice(-7);
+  const prev7 = sorted.slice(-14, -7);
+
+  const avg7 = last7.length > 0 ? (last7.reduce((a, b) => a + b.weight, 0) / last7.length) : latest;
+  const prevAvg7 = prev7.length > 0 ? (prev7.reduce((a, b) => a + b.weight, 0) / prev7.length) : null;
+
+  const diffFromStart = latest - state.settings.startWeight;
+  const distToGoal = latest - state.settings.targetWeight;
+
+  return { sorted, latest, avg7, prevAvg7, diffFromStart, distToGoal };
+}
+
+function drawWeightChart() {
+  const canvas = document.getElementById('weightChartCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const { sorted } = getWeightMetrics();
+  if (sorted.length === 0) return;
+
+  const padL = 50, padR = 25, padT = 25, padB = 35;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  const weightsOnly = sorted.map(x => x.weight);
+  const minW = Math.min(...weightsOnly, state.settings.targetWeight) - 1;
+  const maxW = Math.max(...weightsOnly, state.settings.startWeight) + 1;
+
+  // Líneas guía horizontales
+  ctx.strokeStyle = '#1e293b';
+  ctx.fillStyle = '#9ca3af';
+  ctx.font = '12px monospace';
+  for (let i = 0; i <= 4; i++) {
+    const val = minW + ((maxW - minW) * (4 - i)) / 4;
+    const y = padT + (plotH * i) / 4;
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(W - padR, y);
+    ctx.stroke();
+    ctx.fillText(val.toFixed(1), 8, y + 4);
+  }
+
+  const getX = idx => sorted.length === 1 ? padL + plotW / 2 : padL + (idx / (sorted.length - 1)) * plotW;
+  const getY = val => padT + ((maxW - val) / (maxW - minW)) * plotH;
+
+  // Línea de Peso Diario
+  ctx.strokeStyle = '#E7F05A';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  sorted.forEach((pt, idx) => {
+    const x = getX(idx), y = getY(pt.weight);
+    if (idx === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Línea de Media Móvil de 7 días
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  sorted.forEach((pt, idx) => {
+    const win = sorted.slice(Math.max(0, idx - 6), idx + 1);
+    const ma = win.reduce((a, b) => a + b.weight, 0) / win.length;
+    const x = getX(idx), y = getY(ma);
+    if (idx === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Puntos
+  sorted.forEach((pt, idx) => {
+    const x = getX(idx), y = getY(pt.weight);
+    ctx.fillStyle = '#E7F05A';
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+    if (idx === 0 || idx === sorted.length - 1 || idx % Math.ceil(sorted.length / 5) === 0) {
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillText(pt.date.slice(5), x - 16, H - 10);
+    }
+  });
+}
+
+function saveWaistEntry() {
+  const d = document.getElementById('waistDateInput').value || getTodayISO();
+  const cm = parseFloat(document.getElementById('waistValInput').value);
+  const notes = document.getElementById('waistNotesInput').value.trim();
+  if (!cm || cm < 50 || cm > 200) {
+    alert('Introduce un perímetro de cintura válido en cm.');
+    return;
+  }
+  const idx = state.waists.findIndex(x => x.date === d);
+  if (idx >= 0) state.waists[idx] = { date: d, waist: cm, notes };
+  else state.waists.push({ date: d, waist: cm, notes });
+  state.waists.sort((a, b) => b.date.localeCompare(a.date));
+  saveState();
+  renderProgressTab();
+  showToast('📏 Perímetro de cintura guardado.');
+}
+
+function deleteWaistEntry(dateStr) {
+  state.waists = state.waists.filter(w => w.date !== dateStr);
+  saveState();
+  renderProgressTab();
+}
+
+/* =========================================================================
+   9. CHECK-IN DIARIO Y REVISIÓN SEMANAL INTELIGENTE
+   ========================================================================= */
+function loadCheckinForDate() {
+  const d = document.getElementById('chkDate').value || getTodayISO();
+  const c = state.checkins[d] || {};
+  document.getElementById('chkKcal').value = c.kcal || '';
+  document.getElementById('chkProt').value = c.prot || '';
+  document.getElementById('chkCarb').value = c.carb || '';
+  document.getElementById('chkFat').value  = c.fat  || '';
+  document.getElementById('chkSteps').value = c.steps || '';
+  document.getElementById('chkSleep').value = c.sleep || '';
+  document.getElementById('chkHunger').value = c.hunger || 2;
+  document.getElementById('chkEnergy').value = c.energy || 4;
+  document.getElementById('chkStress').value = c.stress || 2;
+  document.getElementById('chkBoxing').checked = !!c.boxing;
+  document.getElementById('chkStrength').checked = !!c.strength;
+  document.getElementById('chkNotes').value = c.notes || '';
+}
+
+function saveDailyCheckin() {
+  const d = document.getElementById('chkDate').value || getTodayISO();
+  const sleepHours = parseFloat(document.getElementById('chkSleep').value) || 0;
+  state.checkins[d] = {
+    kcal: Number(document.getElementById('chkKcal').value) || 0,
+    prot: Number(document.getElementById('chkProt').value) || 0,
+    carb: Number(document.getElementById('chkCarb').value) || 0,
+    fat:  Number(document.getElementById('chkFat').value)  || 0,
+    steps: Number(document.getElementById('chkSteps').value) || 0,
+    sleep: sleepHours,
+    hunger: Number(document.getElementById('chkHunger').value) || 2,
+    energy: Number(document.getElementById('chkEnergy').value) || 4,
+    stress: Number(document.getElementById('chkStress').value) || 2,
+    boxing: document.getElementById('chkBoxing').checked,
+    strength: document.getElementById('chkStrength').checked,
+    notes: document.getElementById('chkNotes').value.trim()
+  };
+
+  if (sleepHours >= 7) {
+    state.hero.mp = Math.min(state.hero.maxMp, state.hero.mp + 15);
+    setHeroPose('fire');
+    playSFX('spell');
+    showToast(`🔥 Descanso en la Hoguera (${sleepHours}h): ¡+15 MP restaurados!`);
+  } else {
+    showToast('📝 Check-in diario guardado correctamente.');
+  }
+
+  saveState();
+  renderAll();
+}
+
+function renderProgressTab() {
+  const { sorted, latest, avg7, prevAvg7, diffFromStart, distToGoal } = getWeightMetrics();
+  const weeklyChangeText = prevAvg7 !== null ? `${(avg7 - prevAvg7).toFixed(2)} kg vs sem. previa` : 'Sin semana previa aún';
+
+  document.getElementById('weightStatsSummary').innerHTML = `
+    <div class="stat-card"><div class="label">Peso Actual</div><div class="val">${latest.toFixed(1)} kg</div><div class="sub">${diffFromStart <= 0 ? diffFromStart.toFixed(1) : '+'+diffFromStart.toFixed(1)} kg vs inicio</div></div>
+    <div class="stat-card"><div class="label">Media Móvil 7d</div><div class="val">${avg7.toFixed(1)} kg</div><div class="sub">${weeklyChangeText}</div></div>
+    <div class="stat-card"><div class="label">Meta 90 kg</div><div class="val">${Math.max(0, distToGoal).toFixed(1)} kg</div><div class="sub">Restantes para objetivo</div></div>
+  `;
+
+  // Tabla historial de pesos
+  const wtTable = document.getElementById('weightHistoryTable');
+  wtTable.innerHTML = `
+    <thead><tr><th>Fecha</th><th>Peso (kg)</th><th>Media Móvil 7d</th><th>Acción</th></tr></thead>
+    <tbody>
+      ${[...sorted].reverse().slice(0, 14).map(entry => {
+        const idx = sorted.findIndex(x => x.date === entry.date);
+        const win = sorted.slice(Math.max(0, idx - 6), idx + 1);
+        const ma = (win.reduce((a, b) => a + b.weight, 0) / win.length).toFixed(2);
+        return `<tr>
+          <td>${entry.date}</td>
+          <td><strong>${entry.weight.toFixed(1)} kg</strong></td>
+          <td>${ma} kg</td>
+          <td><button class="rpg-btn red" style="padding:2px 6px; font-size:0.7rem;" onclick="deleteWeightEntry('${entry.date}')">Borrar</button></td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  `;
+
+  // Lista de cintura
+  document.getElementById('waistListContainer').innerHTML = state.waists.length === 0
+    ? '<p style="font-size:0.8rem; color:var(--text-muted);">Aún no hay registros de cintura.</p>'
+    : state.waists.map(w => `
+      <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #1e293b; font-size:0.82rem;">
+        <span><strong>${w.date}:</strong> ${w.waist} cm ${w.notes ? `(${w.notes})` : ''}</span>
+        <button class="rpg-btn red" style="padding:2px 6px; font-size:0.7rem;" onclick="deleteWaistEntry('${w.date}')">X</button>
+      </div>
+    `).join('');
+
+  // Revisión semanal
+  const chkKeys = Object.keys(state.checkins).sort().slice(-7);
+  const chkList = chkKeys.map(k => state.checkins[k]);
+  const avgKcal = chkList.length ? Math.round(chkList.reduce((a, b) => a + (b.kcal || 0), 0) / chkList.length) : 0;
+  const avgProt = chkList.length ? Math.round(chkList.reduce((a, b) => a + (b.prot || 0), 0) / chkList.length) : 0;
+  const avgSteps = chkList.length ? Math.round(chkList.reduce((a, b) => a + (b.steps || 0), 0) / chkList.length) : 0;
+  const avgSleep = chkList.length ? (chkList.reduce((a, b) => a + (b.sleep || 0), 0) / chkList.length).toFixed(1) : 0;
+  const avgHunger = chkList.length ? (chkList.reduce((a, b) => a + (b.hunger || 0), 0) / chkList.length).toFixed(1) : 0;
+  const totalWorkouts = chkList.reduce((a, b) => a + (b.boxing ? 1 : 0) + (b.strength ? 1 : 0), 0);
+
+  const waistChange = state.waists.length >= 2
+    ? `${(state.waists[0].waist - state.waists[state.waists.length - 1].waist).toFixed(1)} cm`
+    : 'Necesita ≥2 registros';
+
+  let oracleAdvice = 'Recopilando registros. Recuerda: distinguimos falta de registros de falta de adherencia. Mantén el plan de 2.800 kcal durante al menos 3-4 semanas antes de valorar ajustes calóricos.';
+  if (chkList.length >= 5) {
+    if (avgHunger >= 4) {
+      oracleAdvice = 'Orientación: El hambre media es elevada (≥4/5). Prioriza verduras de volumen en cena, patata cocida en lugar de arroz y asegúrate de dormir ≥7h antes de tocar calorías.';
+    } else {
+      oracleAdvice = 'Orientación: Buena estabilidad en biomarcadores. Mantén el objetivo actual de 2.800 kcal y la progresión en entrenamientos.';
+    }
+  }
+
+  document.getElementById('weeklyReviewContainer').innerHTML = `
+    <div class="grid-3" style="margin-bottom:10px;">
+      <div class="stat-card"><div class="label">Media Kcal (7d)</div><div class="val">${avgKcal || '—'}</div></div>
+      <div class="stat-card"><div class="label">Media Prot (7d)</div><div class="val">${avgProt ? avgProt+'g' : '—'}</div></div>
+      <div class="stat-card"><div class="label">Media Pasos</div><div class="val">${avgSteps || '—'}</div></div>
+      <div class="stat-card"><div class="label">Entrenos (7d)</div><div class="val">${totalWorkouts}</div></div>
+      <div class="stat-card"><div class="label">Sueño / Hambre</div><div class="val">${avgSleep}h / ${avgHunger}</div></div>
+      <div class="stat-card"><div class="label">Cambio Cintura</div><div class="val">${waistChange}</div></div>
+    </div>
+    <div style="font-size:0.82rem; color:var(--gold-light); background:#090d16; padding:10px; border:1px solid var(--gold-dark); border-radius:4px;">
+      🔮 <strong>Consejo Orientativo (No diagnóstico):</strong> ${oracleAdvice}
+    </div>
+  `;
+
+  drawWeightChart();
+}
+
+/* =========================================================================
+   10. FOTOGRAFÍAS DE PROGRESO Y SPRITE PERSONALIZADO EN INDEXEDDB
+   ========================================================================= */
+const IDB_NAME = 'PeterFitIndexedDB';
+const IDB_VERSION = 1;
+
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('photos')) {
+        db.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains('sprites')) {
+        db.createObjectStore('sprites', { keyPath: 'key' });
+      }
+    };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+async function addProgressPhoto() {
+  const fileInput = document.getElementById('photoFileInput');
+  const dateStr = document.getElementById('photoDateInput').value || getTodayISO();
+  if (!fileInput.files || !fileInput.files[0]) {
+    alert('Selecciona una imagen de tu dispositivo primero.');
+    return;
+  }
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+  reader.onload = async function(ev) {
+    const db = await openIDB();
+    const tx = db.transaction('photos', 'readwrite');
+    tx.objectStore('photos').add({ date: dateStr, dataUrl: ev.target.result });
+    tx.oncomplete = () => {
+      fileInput.value = '';
+      renderPhotoGallery();
+      showToast('📷 Fotografía guardada localmente en IndexedDB.');
+    };
+  };
+  reader.readAsDataURL(file);
+}
+
+async function renderPhotoGallery() {
+  try {
+    const db = await openIDB();
+    const tx = db.transaction('photos', 'readonly');
+    const req = tx.objectStore('photos').getAll();
+    req.onsuccess = () => {
+      const photos = req.result || [];
+      const container = document.getElementById('photoGalleryContainer');
+      if (photos.length === 0) {
+        container.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted);">Sin fotografías almacenadas.</p>';
+        return;
+      }
+      container.innerHTML = photos.map(p => `
+        <div class="photo-card">
+          <img src="${p.dataUrl}" alt="Progreso ${p.date}">
+          <div style="font-size:0.75rem; margin:4px 0;">${p.date}</div>
+          <button class="rpg-btn red" style="padding:2px 6px; font-size:0.7rem;" onclick="deleteProgressPhoto(${p.id})">Eliminar</button>
+        </div>
+      `).join('');
+    };
+  } catch (e) {}
+}
+
+async function deleteProgressPhoto(id) {
+  if (!confirm('¿Eliminar esta fotografía de IndexedDB?')) return;
+  const db = await openIDB();
+  const tx = db.transaction('photos', 'readwrite');
+  tx.objectStore('photos').delete(id);
+  tx.oncomplete = () => renderPhotoGallery();
+}
+
+async function uploadCustomSpriteSheet(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const dataUrl = e.target.result;
+    const db = await openIDB();
+    const tx = db.transaction('sprites', 'readwrite');
+    tx.objectStore('sprites').put({ key: 'heroSheet', dataUrl });
+    tx.oncomplete = () => {
+      loadCustomSpriteFromIDB();
+      showToast('🖼️ Retrato de Hoja de Sprites cargado.');
+    };
+  };
+  reader.readAsDataURL(file);
+}
+
+async function loadCustomSpriteFromIDB() {
+  try {
+    const db = await openIDB();
+    const tx = db.transaction('sprites', 'readonly');
+    const req = tx.objectStore('sprites').get('heroSheet');
+    req.onsuccess = () => {
+      if (req.result && req.result.dataUrl) {
+        const img = new Image();
+        img.onload = () => { customSpriteImg = img; drawPixelHero(); };
+        img.src = req.result.dataUrl;
+      } else {
+        customSpriteImg = null;
+        drawPixelHero();
+      }
+    };
+  } catch (e) {}
+}
+
+async function clearCustomSpriteSheet() {
+  const db = await openIDB();
+  const tx = db.transaction('sprites', 'readwrite');
+  tx.objectStore('sprites').delete('heroSheet');
+  tx.oncomplete = () => {
+    customSpriteImg = null;
+    drawPixelHero();
+    showToast('🎨 Usando el motor Pixel-Art animado integrado.');
+  };
+}
+
+/* =========================================================================
+   11. GRIMORIO DE HECHIZOS, HITOS E INVENTARIO
+   ========================================================================= */
+function castSpell(spellId) {
+  const sp = INITIAL_SPELLS.find(s => s.id === spellId);
+  if (!sp) return;
+
+  if (state.hero.level < sp.reqLevel) {
+    alert(`Necesitas alcanzar el Nivel ${sp.reqLevel} para dominar este hechizo.`);
+    return;
+  }
+  if (state.hero.lostSpells.includes(sp.id)) {
+    alert(`Perdiste este hechizo al caer a 0 HP. Sube un nivel más para recuperarlo.`);
+    return;
+  }
+  if (state.hero.mp < sp.mpCost) {
+    alert(`No tienes suficiente Maná (MP). Necesitas ${sp.mpCost} MP. Duerme bien y cumple el menú para recargar MP.`);
+    return;
+  }
+
+  state.hero.mp -= sp.mpCost;
+  playSFX('spell');
+  const today = getTodayISO();
+  ensureTodayProgress();
+
+  if (spellId === 'paso_etereo') {
+    state.dailyProgress[today].stepsTier = 8000;
+    state.dailyProgress[today].stepsXpClaimed = 50;
+    gainXP(50, 'Hechizo Paso Etéreo (Pasos perdonados)');
+  } else if (spellId === 'guardia_alta') {
+    state.hero.shieldActive = true;
+    showToast('🛡️ ¡Escudo de Guardia Alta activado! Estás protegido contra pérdidas de HP a las 00:01.');
+  } else if (spellId === 'alquimia_calorica') {
+    state.dailyProgress[today].quests.menu = true;
+    gainXP(50, 'Alquimia del Fogón (Comida compensada)');
+  } else if (spellId === 'segundo_aliento') {
+    state.hero.hp = Math.min(state.hero.maxHp, state.hero.hp + 60);
+    showToast('❤️ ¡Segundo Aliento lanzado! Has recuperado +60 HP.');
+  }
+
+  saveState();
+  renderAll();
+}
+
+function claimMilestone(mId) {
+  if (state.hero.claimedMilestones.includes(mId)) return;
+  const m = INITIAL_MILESTONES.find(x => x.id === mId);
+  if (!m) return;
+
+  state.hero.claimedMilestones.push(mId);
+  state.hero.inventory.push(Object.assign({ uid: 'item_' + Date.now() }, m.item));
+  gainXP(m.xp, `Hito logrado: ${m.title}`);
+  saveState();
+  renderAll();
+}
+
+function useOrEquipItem(uid) {
+  const idx = state.hero.inventory.findIndex(i => i.uid === uid);
+  if (idx < 0) return;
+  const item = state.hero.inventory[idx];
+
+  if (item.type === 'consumable') {
+    if (item.effect === 'hp') {
+      state.hero.hp = Math.min(state.hero.maxHp, state.hero.hp + item.val);
+      showToast(`🧪 Usaste ${item.name}: +${item.val} HP restaurados.`);
+    } else if (item.effect === 'mp') {
+      state.hero.mp = Math.min(state.hero.maxMp, state.hero.mp + item.val);
+      showToast(`🧪 Usaste ${item.name}: +${item.val} MP restaurados.`);
+    }
+    playSFX('spell');
+    state.hero.inventory.splice(idx, 1);
+  } else if (item.type === 'equip') {
+    state.hero.equippedItem = item;
+    playSFX('xp');
+    showToast(`⚔️ Has equipado: ${item.name} (${item.desc}).`);
+  }
+
+  saveState();
+  renderAll();
+}
+
+function renderGrimoireTab() {
+  // Hechizos
+  document.getElementById('spellsContainer').innerHTML = INITIAL_SPELLS.map(sp => {
+    const unlocked = state.hero.level >= sp.reqLevel && !state.hero.lostSpells.includes(sp.id);
+    return `
+      <div class="quest-item ${unlocked ? 'done' : ''}" style="cursor:default;">
+        <div>
+          <div style="font-weight:800; color:${unlocked ? 'var(--gold-light)' : 'var(--text-muted)'};">
+            ${unlocked ? '✨' : '🔒'} ${sp.name} <span class="tag">Nivel ${sp.reqLevel}</span> <span class="tag">${sp.mpCost} MP</span>
+          </div>
+          <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">${sp.desc}</div>
+        </div>
+        <button class="rpg-btn ${unlocked ? 'gold' : ''}" ${!unlocked ? 'disabled' : ''} onclick="castSpell('${sp.id}')">
+          Lanzar
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  // Inventario
+  const invContainer = document.getElementById('inventoryContainer');
+  if (state.hero.inventory.length === 0) {
+    invContainer.innerHTML = '<p style="font-size:0.82rem; color:var(--text-muted);">Tu mochila está vacía. Completa hitos abajo para ganar pociones y reliquias.</p>';
+  } else {
+    invContainer.innerHTML = state.hero.inventory.map(it => {
+      const isEq = state.hero.equippedItem && state.hero.equippedItem.uid === it.uid;
+      return `
+        <div class="quest-item ${isEq ? 'done' : ''}" style="cursor:default;">
+          <div>
+            <div style="font-weight:700; color:var(--gold-light);">${it.type === 'equip' ? '🛡️' : '🧪'} ${it.name} ${isEq ? '<span class="tag">EQUIPADO</span>' : ''}</div>
+            <div style="font-size:0.76rem; color:var(--text-muted);">${it.desc}</div>
+          </div>
+          <button class="rpg-btn" onclick="useOrEquipItem('${it.uid}')">${it.type === 'equip' ? (isEq ? 'Equipado' : 'Equipar') : 'Usar'}</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Hitos
+  document.getElementById('milestonesContainer').innerHTML = INITIAL_MILESTONES.map(m => {
+    const claimed = state.hero.claimedMilestones.includes(m.id);
+    return `
+      <div class="stat-card" style="display:flex; flex-direction:column; justify-content:space-between; gap:8px;">
+        <div>
+          <div style="font-weight:800; color:var(--gold-light);">${m.title}</div>
+          <div style="font-size:0.78rem; color:#4ade80; margin-top:3px;">🎁 Recompensa: ${m.rewardText}</div>
+        </div>
+        <button class="rpg-btn ${claimed ? '' : 'green'}" ${claimed ? 'disabled' : ''} onclick="claimMilestone('${m.id}')">
+          ${claimed ? '✅ Reclamado' : '🏆 ¡He cumplido este Hito!'}
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+/* =========================================================================
+   12. ENTRENAMIENTO, HÁBITOS Y AJUSTES / EXPORTACIÓN
+   ========================================================================= */
+function addWorkoutLog() {
+  const type = document.getElementById('workoutTypeInput').value;
+  const details = document.getElementById('workoutDetailsInput').value.trim();
+  const rpe = document.getElementById('workoutRpeInput').value;
+  if (!details) {
+    alert('Describe brevemente el entrenamiento realizado.');
+    return;
+  }
+  state.workouts.unshift({
+    id: Date.now(),
+    date: getTodayISO(),
+    type,
+    details,
+    rpe
+  });
+  document.getElementById('workoutDetailsInput').value = '';
+  saveState();
+  renderTrainingTab();
+  showToast('🥊 Sesión añadida a la Bitácora de Combate.');
+}
+
+function deleteWorkoutLog(id) {
+  state.workouts = state.workouts.filter(w => w.id !== id);
+  saveState();
+  renderTrainingTab();
+}
+
+function renderTrainingTab() {
+  const table = document.getElementById('workoutLogTable');
+  if (state.workouts.length === 0) {
+    table.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted);">Sin entrenamientos anotados en bitácora todavía.</td></tr>';
+    return;
+  }
+  table.innerHTML = `
+    <thead><tr><th>Fecha</th><th>Modalidad</th><th>Detalles</th><th>RPE</th><th>Acción</th></tr></thead>
+    <tbody>
+      ${state.workouts.map(w => `
+        <tr>
+          <td>${w.date}</td>
+          <td><strong>${w.type}</strong></td>
+          <td>${w.details}</td>
+          <td>${w.rpe}/10</td>
+          <td><button class="rpg-btn red" style="padding:2px 6px; font-size:0.7rem;" onclick="deleteWorkoutLog(${w.id})">X</button></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  `;
+}
+
+function renderHabitsTab() {
+  const principles = [
+    { name: "1. Déficit sostenible", desc: "Buscar una pérdida progresiva (~425 kcal de déficit estimado) sin restricciones extremas." },
+    { name: "2. Proteína suficiente", desc: "Priorizar ~165 g diarios de proteína para apoyar la conservación de masa muscular." },
+    { name: "3. Entrenamiento de fuerza", desc: "Mantener cargas y progresión en tus 2 sesiones semanales siempre que la recuperación lo permita." },
+    { name: "4. Actividad diaria", desc: "Mantener los pasos habituales (rango 8.000 a 20.000) sin añadir cardio agotador innecesario." },
+    { name: "5. Control de raciones", desc: "Medir los alimentos energéticamente relevantes en crudo (cereales, carnes, AOVE)." },
+    { name: "6. Seguimiento inteligente", desc: "Analizar medias móviles de 7 días de peso, cintura y evolución física sin obsesionarse con un día." },
+    { name: "7. Salud metabólica", desc: "Limitar bebidas azucaradas, beber 3L de agua y priorizar fruta entera." },
+    { name: "8. Sueño y recuperación", desc: "Buscar descanso suficiente para recargar tu barra de Maná (MP) y gestionar la fatiga del boxeo." },
+    { name: "9. Flexibilidad 85/15", desc: "Mantener flexibilidad social sin convertirla en una obligación matemática ni sentimiento de culpa." },
+    { name: "10. Consistencia", desc: "Valorar el cumplimiento de hábitos a largo plazo por encima de la perfección puntual." }
+  ];
+
+  const cautions = [
+    "🛡️ No afirmar jamás que el metabolismo se 'bloquea' o 'se apaga' por hacer dieta.",
+    "🛡️ No atribuir automáticamente cualquier retención o aumento de grasa al cortisol.",
+    "🛡️ No afirmar que el hígado necesita tres horas sin comer para 'limpiarse'.",
+    "🛡️ No etiquetar los alimentos como moralmente buenos o malos.",
+    "🛡️ No presentar el gasto calórico estimado (3.225 kcal) como un dato fisiológico medido en laboratorio."
+  ];
+
+  document.getElementById('lifestylePrinciplesContainer').innerHTML = principles.map(p => `
+    <div class="stat-card">
+      <div style="font-weight:800; color:var(--gold-light); margin-bottom:4px;">${p.name}</div>
+      <div style="font-size:0.82rem; color:var(--text-main);">${p.desc}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('scientificCautionsContainer').innerHTML = cautions.map(c => `
+    <div class="quest-item" style="cursor:default;">
+      <span style="font-size:0.86rem;">${c}</span>
+    </div>
+  `).join('');
+}
+
+function saveSettings() {
+  state.settings.targetKcal = Number(document.getElementById('setKcal').value) || 2800;
+  state.settings.targetProt = Number(document.getElementById('setProt').value) || 165;
+  state.settings.targetCarb = Number(document.getElementById('setCarb').value) || 335;
+  state.settings.targetFat  = Number(document.getElementById('setFat').value)  || 89;
+  state.settings.startWeight = parseFloat(document.getElementById('setStartWeight').value) || 107.5;
+  state.settings.targetWeight = parseFloat(document.getElementById('setTargetWeight').value) || 90.0;
+  saveState();
+  renderAll();
+  showToast('⚙️ Objetivos nutricionales actualizados.');
+}
+
+function restart14DayTrial() {
+  if (!confirm('¿Reiniciar el contador de la Fase Inicial de 14 días a partir de hoy?')) return;
+  state.settings.trialStartDate = getTodayISO();
+  saveState();
+  renderAll();
+  showToast('🔄 Fase inicial de 14 días reiniciada a Día 1.');
+}
+
+function exportDataJSON() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `peter_fit_backup_${getTodayISO()}.json`;
+  a.click();
+}
+
+function importDataJSON(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      state = Object.assign(getDefaultState(), imported);
+      saveState();
+      renderAll();
+      showToast('📥 Partida y registros importados con éxito.');
+    } catch (err) {
+      alert('El archivo JSON no es válido.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function exportCheckinsCSV() {
+  const dates = Array.from(new Set([...Object.keys(state.checkins), ...state.weights.map(w => w.date)])).sort();
+  let csv = 'Fecha,Peso_kg,Calorias,Proteina_g,Carbohidratos_g,Grasa_g,Pasos,Boxeo,Fuerza,Sueno_h,Hambre,Energia,Estres,Notas\n';
+  dates.forEach(d => {
+    const wObj = state.weights.find(x => x.date === d);
+    const c = state.checkins[d] || {};
+    const notesClean = (c.notes || '').replace(/,/g, ';');
+    csv += `${d},${wObj ? wObj.weight : ''},${c.kcal || ''},${c.prot || ''},${c.carb || ''},${c.fat || ''},${c.steps || ''},${c.boxing ? 'SI' : 'NO'},${c.strength ? 'SI' : 'NO'},${c.sleep || ''},${c.hunger || ''},${c.energy || ''},${c.stress || ''},"${notesClean}"\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `peter_fit_registros_${getTodayISO()}.csv`;
+  a.click();
+}
+
+function resetAllData() {
+  if (!confirm('⚠️ ¿Estás seguro de que quieres BORRAR TODOS LOS DATOS y reiniciar tu personaje a Nivel 1 (0 XP)? Esta acción no se puede deshacer.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = getDefaultState();
+  saveState();
+  renderAll();
+  showToast('🔄 Partida reiniciada a Nivel 1.');
+}
+
+/* =========================================================================
+   13. RENDERIZADO PRINCIPAL DEL HUD Y DASHBOARD
+   ========================================================================= */
+function renderHeroHUD() {
+  const h = state.hero;
+  const xpNeed = getXpNeededForLevel(h.level);
+  document.getElementById('currentDateBadge').textContent = getTodayISO();
+  document.getElementById('heroLevelBadge').textContent = `LVL ${h.level}`;
+
+  const titles = [
+    'Aspirante de la Vega', 'Púgil de Bronce', 'Caminante Rúnico', 'Guerrero del Hierro',
+    'Maestro del Fogón', 'Señor del Ring', 'Paladín de los 90 Kg', 'Titán de Acero',
+    'Campeón de 16-Bits', 'Leyenda Inmortal'
+  ];
+  document.getElementById('heroClassTitle').textContent = titles[Math.min(titles.length - 1, h.level - 1)];
+
+  document.getElementById('equippedSummary').textContent = h.equippedItem
+    ? `🛡️ ${h.equippedItem.name} (${h.equippedItem.desc}) ${h.shieldActive ? '| ✨ ESCUDO ACTIVO' : ''}`
+    : (h.shieldActive ? '✨ ESCUDO DE GUARDIA ALTA ACTIVO' : 'Sin reliquia equipada');
+
+  const hpPct = Math.min(100, Math.round((h.hp / h.maxHp) * 100));
+  const mpPct = Math.min(100, Math.round((h.mp / h.maxMp) * 100));
+  const xpPct = h.level >= 10 ? 100 : Math.min(100, Math.round((h.xp / xpNeed) * 100));
+
+  document.getElementById('hpBar').style.width = hpPct + '%';
+  document.getElementById('mpBar').style.width = mpPct + '%';
+  document.getElementById('xpBar').style.width = xpPct + '%';
+
+  document.getElementById('hpText').textContent = `${h.hp}/${h.maxHp}`;
+  document.getElementById('mpText').textContent = `${h.mp}/${h.maxMp}`;
+  document.getElementById('xpText').textContent = h.level >= 10 ? 'MAX' : `${h.xp}/${xpNeed}`;
+
+  // Días de la fase de 14 días
+  const startMs = new Date(state.settings.trialStartDate).getTime();
+  const nowMs = new Date(getTodayISO()).getTime();
+  const elapsedDays = Math.max(0, Math.floor((nowMs - startMs) / 86400000));
+  const currentTrialDay = Math.min(14, elapsedDays + 1);
+  const remainingDays = Math.max(0, 14 - elapsedDays);
+  document.getElementById('dayStreakStatus').textContent = `🔥 Fase Inicial: Día ${currentTrialDay} de 14 (${remainingDays} días restantes)`;
+}
+
+function renderDashboard() {
+  ensureTodayProgress();
+  const today = getTodayISO();
+  const prog = state.dailyProgress[today];
+
+  // Botones de rango de pasos
+  [8000, 10000, 12000, 15000, 20000].forEach(val => {
+    const el = document.getElementById('tier-' + val);
+    if (el) {
+      if (prog.stepsTier === val) el.classList.add('selected');
+      else el.classList.remove('selected');
+    }
+  });
+  document.getElementById('stepsTierStatus').textContent = prog.stepsTier > 0
+    ? `✅ ${prog.stepsTier.toLocaleString('es-ES')} pasos (+${prog.stepsXpClaimed} XP)`
+    : 'Toca un rango para sumar XP';
+
+  // Lista de las 7 misiones diarias
+  const qContainer = document.getElementById('dailyQuestsContainer');
+  qContainer.innerHTML = DAILY_QUESTS_DEF.map(q => {
+    const done = !!prog.quests[q.id];
+    return `
+      <div class="quest-item ${done ? 'done' : ''}" onclick="toggleQuest('${q.id}')">
+        <div class="quest-info">
+          <div class="quest-check">${done ? '✓' : ''}</div>
+          <div>
+            <div style="font-weight:700; font-size:0.9rem;">${q.title}</div>
+          </div>
+        </div>
+        <span class="quest-badge">+${q.xp} XP ${q.mpBonus ? `| +${q.mpBonus} MP` : ''}</span>
+      </div>
+    `;
+  }).join('');
+
+  // Las 10 tarjetas del Dashboard requeridas por el JSON
+  const chk = state.checkins[today] || {};
+  const { latest, avg7, distToGoal } = getWeightMetrics();
+  const s = state.settings;
+  const doneQuestsCount = Object.values(prog.quests).filter(Boolean).length + (prog.stepsTier > 0 ? 1 : 0);
+
+  // Entrenamientos realizados en los últimos 7 días
+  const last7Dates = Object.keys(state.dailyProgress).sort().slice(-7);
+  const trainingsDoneWeek = last7Dates.reduce((acc, d) => {
+    const q = state.dailyProgress[d]?.quests || {};
+    return acc + (q.boxing ? 1 : 0) + (q.strength ? 1 : 0);
+  }, 0);
+
+  const startMs = new Date(s.trialStartDate).getTime();
+  const nowMs = new Date(today).getTime();
+  const remainingDays = Math.max(0, 14 - Math.max(0, Math.floor((nowMs - startMs) / 86400000)));
+
+  const cards = [
+    { label: '1. Calorías (Hoy / Obj)', val: `${chk.kcal || 0} / ${s.targetKcal}`, sub: 'kcal registradas hoy' },
+    { label: '2. Proteína Diaria', val: `${chk.prot || 0} / ${s.targetProt} g`, sub: 'Meta conservación muscular' },
+    { label: '3. Hidratos Diarios', val: `${chk.carb || 0} / ${s.targetCarb} g`, sub: 'Energía para boxeo y fuerza' },
+    { label: '4. Peso Actual', val: `${latest.toFixed(1)} kg`, sub: `Inicio: ${s.startWeight} kg` },
+    { label: '5. Media Semanal Peso', val: `${avg7.toFixed(1)} kg`, sub: 'Media móvil 7 días' },
+    { label: '6. Progreso hacia 90 kg', val: `-${(s.startWeight - latest).toFixed(1)} kg`, sub: `Faltan ${Math.max(0, distToGoal).toFixed(1)} kg` },
+    { label: '7. Pasos Diarios', val: `${(prog.stepsTier || chk.steps || 0).toLocaleString('es-ES')}`, sub: 'Meta base: 9.000 pasos' },
+    { label: '8. Entrenos Realizados', val: `${trainingsDoneWeek} / 5`, sub: 'Boxeo (2-3) + Fuerza (2) sem.' },
+    { label: '9. Hábitos Completados', val: `${doneQuestsCount} / 8`, sub: 'Misiones de hoy marcadas' },
+    { label: '10. Fase Inicial 14 Días', val: `${remainingDays} días`, sub: 'Restantes del bloque fijo' }
+  ];
+
+  document.getElementById('dashboardCardsContainer').innerHTML = cards.map(c => `
+    <div class="stat-card">
+      <div class="label">${c.label}</div>
+      <div class="val">${c.val}</div>
+      <div class="sub">${c.sub}</div>
+    </div>
+  `).join('');
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+  const targetSec = document.getElementById('tab-' + tabId);
+  if (targetSec) targetSec.classList.add('active');
+  const targetNav = document.getElementById('nav-' + tabId);
+  if (targetNav) targetNav.classList.add('active');
+
+  if (tabId === 'progress') renderProgressTab();
+}
+
+function renderAll() {
+  renderHeroHUD();
+  renderDashboard();
+  renderMenuDay();
+  renderEquivalencesTab();
+  renderProgressTab();
+  renderTrainingTab();
+  renderGrimoireTab();
+  renderHabitsTab();
+
+  // Sincronizar inputs de fechas por defecto
+  const today = getTodayISO();
+  if (!document.getElementById('weightDateInput').value) document.getElementById('weightDateInput').value = today;
+  if (!document.getElementById('waistDateInput').value) document.getElementById('waistDateInput').value = today;
+  if (!document.getElementById('chkDate').value) {
+    document.getElementById('chkDate').value = today;
+    loadCheckinForDate();
+  }
+  if (!document.getElementById('photoDateInput').value) document.getElementById('photoDateInput').value = today;
+
+  // Sincronizar ajustes
+  document.getElementById('setKcal').value = state.settings.targetKcal;
+  document.getElementById('setProt').value = state.settings.targetProt;
+  document.getElementById('setCarb').value = state.settings.targetCarb;
+  document.getElementById('setFat').value  = state.settings.targetFat;
+  document.getElementById('setStartWeight').value = state.settings.startWeight;
+  document.getElementById('setTargetWeight').value = state.settings.targetWeight;
+}
+
+// Inicialización al abrir el archivo
+window.addEventListener('DOMContentLoaded', () => {
+  checkMidnightTransition();
+  loadCustomSpriteFromIDB();
+  renderPhotoGallery();
+  renderAll();
+});
+</script>
+</body>
+</html>
