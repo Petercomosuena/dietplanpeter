@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f7f7f4">
+<meta name="description" content="Menú sencillo y flexible para el día a día.">
+<title>Comida Pedro</title>
+<style>
+:root{color-scheme:light;--bg:#f7f7f4;--paper:#fff;--ink:#222722;--muted:#717870;--line:#e6e9e3;--accent:#2f644b;--tint:#eaf2ec;--radius:18px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}button{font:inherit;cursor:pointer}main{max-width:790px;margin:auto;padding:30px 18px 76px}header{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:23px}h1{font-size:27px;letter-spacing:-.7px;margin:0;font-weight:740}header p{margin:3px 0 0;color:var(--muted);font-size:13px}.mark{width:37px;height:37px;border:1px solid var(--line);border-radius:12px;background:white;display:grid;place-items:center;color:var(--accent)}nav{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:18px}nav button{padding:12px 4px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:#626b62;font-weight:600;font-size:13px}nav button[aria-selected=true]{background:var(--accent);color:white;border-color:var(--accent)}.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:23px;box-shadow:0 3px 12px #26382b07}.eyebrow{color:var(--accent);text-transform:uppercase;font-size:11px;font-weight:750;letter-spacing:1.3px}.headline{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:5px 0 15px}.headline h2{font-size:24px;letter-spacing:-.6px;margin:0}.time{color:var(--muted);white-space:nowrap;font-size:12px}.options{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px}.options button{border:1px solid var(--line);background:#fff;color:#626b62;border-radius:999px;padding:7px 13px;font-size:13px}.options button[aria-pressed=true]{color:var(--accent);background:var(--tint);border-color:#c5d9cb;font-weight:700}.dish{font-size:16px;font-weight:700;letter-spacing:-.2px;margin:0 0 12px}.items{display:grid;gap:0}.item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.item:last-child{border-bottom:0}.food{font-weight:590}.amount{color:var(--ink);font-weight:750;font-variant-numeric:tabular-nums}.visual{color:var(--muted);font-size:12px;margin-top:2px}.tip{font-size:12px;color:var(--muted);background:#f7f9f6;border-radius:11px;padding:11px 13px;margin:17px 0 0}.section-label{font-size:11px;color:var(--muted);font-weight:750;letter-spacing:1px;text-transform:uppercase;margin:22px 0 9px}.swaps{display:grid;grid-template-columns:1fr 1fr;gap:9px}.swap{border:1px solid var(--line);background:var(--paper);color:var(--ink);-webkit-text-fill-color:var(--ink);border-radius:12px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;text-align:left;min-height:100px}.swap.selected{border-color:#a7cbb2;background:var(--tint)}.swap .name{font-weight:650}.swap .grams{font-weight:740;margin-top:7px}.swap .hint{font-size:11px;color:var(--muted);-webkit-text-fill-color:var(--muted);margin-top:2px}.note{margin:16px 1px 0;color:var(--muted);font-size:12px}.footer{margin:17px 0 0;text-align:center;color:#919990;font-size:11px}.hidden{display:none!important}@media(max-width:430px){main{padding:20px 12px 48px}h1{font-size:24px}.panel{padding:18px 16px}.headline h2{font-size:22px}nav{gap:5px}nav button{font-size:12px;padding:11px 2px}.swaps{gap:7px}.swap{padding:10px;min-height:108px}}@media(prefers-reduced-motion:no-preference){nav button,.options button,.swap{transition:background .12s,border-color .12s}}
+</style>
+</head>
+<body>
+<main>
+<header><div><h1>Comida Pedro</h1><p>Lo de siempre. Sin pensarlo demasiado.</p></div><div class="mark" aria-hidden="true">✳</div></header>
+<nav aria-label="Comidas" id="tabs">
+<button data-tab="desayuno" aria-selected="true">Desayuno</button><button data-tab="comida" aria-selected="false">Comida</button><button data-tab="merienda" aria-selected="false">Merienda</button><button data-tab="cena" aria-selected="false">Cena</button>
+</nav>
+<section class="panel" id="content" aria-live="polite"></section>
+<div class="footer">Gramos primero · Medidas visuales aproximadas · Sin dietas complicadas</div>
+</main>
+<script>
+const e=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const meals={
+ desayuno:{time:'3–5 min · para llevar',subtitle:'Escoge una opción',options:[
+  {id:'dulce',label:'Dulce',dish:'Yogur con cereales',items:[['Yogur alto en proteínas','250 g','1 tarrina grande'],['Cereales sin avena','30 g','1 puñado generoso'],['Plátano','100–120 g','1 mediano'],['Nueces','15 g','3–4 nueces enteras sin cáscara']],tip:'Prepara el táper la noche anterior.'},
+  {id:'salado',label:'Salado',dish:'Bocadillo integral',items:[['Pan integral','80 g','1 bocadillo pequeño'],['Pavo en lonchas','80 g','4–5 lonchas (según grosor)'],['Queso','30 g','1–2 lonchas'],['Fruta','1 pieza','1 manzana pequeña o similar']],tip:'Déjalo listo la noche anterior y llévalo al instituto.'},
+  {id:'emergencia',label:'Emergencia',dish:'Crema de arroz + caseína',items:[['Crema de arroz','60 g','5–6 cucharadas rasas aprox.'],['Caseína','30 g','1 cacito, según fabricante'],['Plátano','100–120 g','1 mediano'],['Agua','Al gusto','Hasta lograr la textura deseada']],tip:'Mezcla los ingredientes secos y añade agua cuando vayas a comer. Si usas leche, suma sus calorías.'}
+ ]},
+ comida:{time:'10–15 min · rápida',subtitle:'1 hidrato + 1 proteína + verduras + aceite',builder:true,defaults:{carb:0,protein:0},vegetables:['Verduras','200–300 g','1 plato abundante'],oil:['Aceite de oliva','10–15 g','1 cucharada aprox.']},
+ merienda:{time:'2 minutos',subtitle:'Escoge una opción',options:[
+  {id:'dulce',label:'Dulce',dish:'Yogur y fruta',items:[['Yogur alto en proteínas','200 g','1 tarrina'],['Fruta','1 pieza','1 manzana o similar'],['Almendras','15 g','12–13 unidades aprox.']]},
+  {id:'salada',label:'Salada',dish:'Pan con queso fresco',items:[['Pan integral','60 g','2 rebanadas medianas'],['Queso fresco','80 g','1 porción pequeña'],['Tomate','Al gusto','Unas rodajas']]}
+ ]},
+ cena:{time:'20–30 min · recién hecha',subtitle:'1 hidrato + 1 proteína + verduras + aceite',builder:true,defaults:{carb:2,protein:0},vegetables:['Verduras','250–300 g','1 plato abundante'],oil:['Aceite de oliva','10–15 g','1 cucharada aprox.']}
+};
+const carbs=[['Arroz (en seco)','80 g','1 vasito grande cocido aprox.'],['Pasta (en seco)','80 g','1 plato mediano cocido'],['Patata','350 g','2 patatas medianas'],['Pan integral','100 g','1 bocadillo mediano'],['Tortillas integrales','100 g','3–4 pequeñas; mira el envase']];
+const proteins=[['Pollo','180–200 g','2 filetes medianos (en crudo)'],['Pavo fresco','180–200 g','2 filetes medianos (en crudo)'],['Ternera magra','180–200 g','2 filetes finos grandes (en crudo)'],['Atún al natural','160 g','aprox. 2 latas grandes, peso escurrido'],['Huevos','3 unidades','3 huevos grandes'],['Sardinas en conserva','160 g','según lata, peso escurrido'],['Garbanzos cocidos','200 g','1 bol mediano, escurridos'],['Lentejas cocidas','200 g','1 bol mediano, escurridas']];
+const state={tab:'desayuno',choices:{desayuno:'dulce',merienda:'dulce'},builder:{comida:{carb:0,protein:0},cena:{carb:2,protein:0}}};
+function item([name,grams,visual]){return `<div class="item"><div><div class="food">${e(name)}</div><div class="visual">${e(visual)}</div></div><div class="amount">${e(grams)}</div></div>`}
+function swap(group,data,active,index){return `<button type="button" class="swap ${active===index?'selected':''}" aria-pressed="${active===index}" data-group="${group}" data-index="${index}"><span class="name">${e(data[0])}</span><span><div class="grams">${e(data[1])}</div><div class="hint">${e(data[2])}</div></span></button>`}
+function render(){const key=state.tab,m=meals[key],root=document.getElementById('content');document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===key)));
+let out=`<div class="eyebrow">${e(m.subtitle)}</div><div class="headline"><h2>${e(key.charAt(0).toUpperCase()+key.slice(1))}</h2><span class="time">${e(m.time)}</span></div>`;
+if(m.builder){const s=state.builder[key],carb=carbs[s.carb],protein=proteins[s.protein];out+=`<h3 class="dish">Tu plato</h3><div class="items">${item(carb)}${item(protein)}${item(m.vegetables)}${item(m.oil)}</div><div class="section-label">Cambiar hidrato · elige uno</div><div class="swaps">${carbs.map((x,i)=>swap('carb',x,s.carb,i)).join('')}</div><div class="section-label">Cambiar proteína · elige una</div><div class="swaps">${proteins.map((x,i)=>swap('protein',x,s.protein,i)).join('')}</div><p class="note">Los intercambios son orientativos: huevos, conservas y legumbres no aportan la misma proteína que el pollo. Ajusta aceite si eliges una opción más grasa. Los pesos de arroz y pasta son en seco.</p>`;
+}else{const selected=m.options.find(x=>x.id===state.choices[key])||m.options[0];out+=`<div class="options">${m.options.map(x=>`<button type="button" data-choice="${e(x.id)}" aria-pressed="${x.id===selected.id}">${e(x.label)}</button>`).join('')}</div><h3 class="dish">${e(selected.dish)}</h3><div class="items">${selected.items.map(item).join('')}</div>${selected.tip?`<p class="tip">${e(selected.tip)}</p>`:''}`}
+root.innerHTML=out;
+root.querySelectorAll('[data-choice]').forEach(b=>b.addEventListener('click',()=>{state.choices[key]=b.dataset.choice;render()}));root.querySelectorAll('[data-group]').forEach(b=>b.addEventListener('click',()=>{state.builder[key][b.dataset.group]=Number(b.dataset.index);render()}));
+}
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{state.tab=b.dataset.tab;render()}));render();
+</script>
+</body>
+</html>
